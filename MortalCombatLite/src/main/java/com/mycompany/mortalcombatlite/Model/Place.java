@@ -40,19 +40,19 @@ public class Place {
             switch (k) {
                 case 0 -> {
                     enemy = fullEnemiesList[0];
-                    enemy.setIcon("B.jpg");
+                    enemy.setIcon("resources/Baraka.jpg");
                 }
                 case 1 -> {
                     enemy = fullEnemiesList[1];
-                    enemy.setIcon("SZ.jpg");
+                    enemy.setIcon("resources/SubZero.jpg");
                 }
                 case 2 -> {
                     enemy = fullEnemiesList[2];
-                    enemy.setIcon("LK.jpg");
+                    enemy.setIcon("resources/LuKang.jpg");
                 }
                 case 3 -> {
                     enemy = fullEnemiesList[3];
-                    enemy.setIcon("SB.jpg");
+                    enemy.setIcon("resources/sonya.jpg");
                 }
             }
             currentEnemiesList.add(enemy);
@@ -88,7 +88,7 @@ public class Place {
         } else {
             currentEnemyNumber = 0;
             enemy = fullEnemiesList[4];
-            enemy.setIcon("SecretBoss.jpg");
+            enemy.setIcon("resources/Boss.jpeg");
             return enemy;
         }
     }

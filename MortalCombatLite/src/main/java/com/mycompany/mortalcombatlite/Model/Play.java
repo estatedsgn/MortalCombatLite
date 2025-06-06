@@ -35,7 +35,7 @@ public class Play {
         enemies[1] = new Enemy("Sub-Zero", 1, 60, 16);
         enemies[2] = new Enemy("Liu Kang", 1, 70, 20);
         enemies[3] = new Enemy("Sonya Blade", 1, 80, 16);
-        enemies[4] = new Enemy("Lord Islam Maximov", 3, 100, 30);
+        enemies[4] = new Enemy("Arseni", 3, 100, 30);
     }
 
     public Enemy[] getEnemies() {

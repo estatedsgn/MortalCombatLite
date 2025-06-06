@@ -23,7 +23,7 @@ public class PlayAct {
             case "Sub-Zero" -> {
                 return list.get((int) (Math.random() * 3));
             }
-            case "Lord Islam Maximov" -> {
+            case "Arseni" -> {
                 list.remove(2);
                 return list.get((int) (Math.random() * 3));
             }
@@ -128,7 +128,7 @@ public class PlayAct {
                     enemy.setDamage(16);
                     enemy.setMaxHealth(80);
                 }
-                case "Lord Islam Maximov" -> {
+                case "Arseni" -> {
                     enemy.setLevel(1);
                     enemy.setDamage(30);
                     enemy.setMaxHealth(100);
