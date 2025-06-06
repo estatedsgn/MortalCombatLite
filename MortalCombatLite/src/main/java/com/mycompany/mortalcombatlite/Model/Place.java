@@ -12,8 +12,13 @@ package com.mycompany.mortalcombatlite.Model;
 
 
 import com.mycompany.mortalcombatlite.Heros.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 
 import java.util.ArrayList;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 
 public class Place {
 
@@ -30,8 +35,11 @@ public class Place {
     public ArrayList<Enemy> getEnemiesAtLocation() {
         return currentEnemiesList;
     }
+    
 
-    public void setEnemiesAtLocation(int i) {
+
+    public void setEnemiesAtLocation(int i) throws IOException {
+        
         currentEnemiesList = new ArrayList<>();
         Enemy enemy = null;
         locationSize = 1 + (int) (Math.random() * i);
@@ -40,26 +48,26 @@ public class Place {
             switch (k) {
                 case 0 -> {
                     enemy = fullEnemiesList[0];
-                    enemy.setIcon("resources/Baraka.jpg");
+                    enemy.setIcon("/Baraka.jpg");
                 }
                 case 1 -> {
                     enemy = fullEnemiesList[1];
-                    enemy.setIcon("resources/SubZero.jpg");
+                    enemy.setIcon("/SubZero.jpg");
                 }
                 case 2 -> {
                     enemy = fullEnemiesList[2];
-                    enemy.setIcon("resources/LuKang.jpg");
+                    enemy.setIcon("/LuKang.jpg");
                 }
                 case 3 -> {
                     enemy = fullEnemiesList[3];
-                    enemy.setIcon("resources/sonya.jpg");
+                    enemy.setIcon("/sonya.jpg");
                 }
             }
             currentEnemiesList.add(enemy);
         }
     }
 
-    public void resetLocation(boolean a, int i) {
+    public void resetLocation(boolean a, int i) throws IOException {
         if (a) {
             currentLocation += 1 ;
             currentEnemyNumber = 0;
@@ -80,7 +88,7 @@ public class Place {
         return currentEnemyNumber;
     }
 
-    public Enemy getCurrentEnemy() {
+    public Enemy getCurrentEnemy() throws IOException {
         Enemy enemy = null;
         if (currentEnemyNumber != locationSize) {
             currentEnemyNumber += 1;
@@ -88,7 +96,7 @@ public class Place {
         } else {
             currentEnemyNumber = 0;
             enemy = fullEnemiesList[4];
-            enemy.setIcon("resources/Boss.jpeg");
+            enemy.setIcon("/Boss.jpeg");
             return enemy;
         }
     }

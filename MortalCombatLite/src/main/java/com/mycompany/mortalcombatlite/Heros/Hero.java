@@ -8,6 +8,10 @@ package com.mycompany.mortalcombatlite.Heros;
  *
  * @author nyaku
  */
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 public abstract class Hero {
@@ -63,9 +67,15 @@ public abstract class Hero {
         return icon;
     }
 
-    public void setIcon(String path) {
-        icon = new ImageIcon(path);
-    }
+    public void setIcon(String path) throws IOException {
+            InputStream is = getClass().getResourceAsStream(path);
+            BufferedImage image = ImageIO.read(is);
+            ImageIcon icon = new ImageIcon(image);
+            
+
+            this.icon = icon;
+            
+        }
 
     public int getMovesWithDebuff() {
         return movesWithDebuff;

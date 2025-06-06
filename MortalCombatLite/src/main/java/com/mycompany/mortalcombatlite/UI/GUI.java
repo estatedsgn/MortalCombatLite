@@ -20,10 +20,14 @@ package com.mycompany.mortalcombatlite.UI;
 
 import com.mycompany.mortalcombatlite.Heros.Player;
 import com.mycompany.mortalcombatlite.Model.*;
+import java.awt.image.BufferedImage;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -47,7 +51,19 @@ public class GUI extends JFrame {
         game.writeToTable(recordsTable);
         game.setEnemies();
         game.fight.location.setFullEnemiesList(game.getEnemies());
-        playerIconLabel.setIcon(new ImageIcon("resources/sauron.jpg"));
+        InputStream is = getClass().getResourceAsStream("/sauron.jpg");
+        try {
+            BufferedImage image = ImageIO.read(is);
+            if (image == null) {
+                System.out.println("Ошибка: изображение повреждено или не поддерживается!");
+                return;
+            }
+            ImageIcon icon = new ImageIcon(image);
+            playerIconLabel.setIcon(icon);
+        } catch (Exception e) {
+            System.out.println("Ошибка при чтении изображения: " + e.getMessage());
+            e.printStackTrace();
+        }
         attributesGroup.add(healthButton);
         attributesGroup.add(damageButton);
         itemsGroup.add(firstItemButton);
@@ -469,29 +485,28 @@ public class GUI extends JFrame {
             .addGroup(endFightPanelLayout.createSequentialGroup()
                 .addGroup(endFightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(endFightPanelLayout.createSequentialGroup()
-                        .addGap(156, 156, 156)
+                        .addGap(15, 15, 15)
+                        .addComponent(nextRoundButton, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(52, 52, 52)
                         .addComponent(GIFLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 326, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(endFightPanelLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(endRoundLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 385, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(39, 39, 39)
-                        .addComponent(nextRoundButton, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(25, Short.MAX_VALUE))
+                        .addGap(27, 27, 27)
+                        .addComponent(endRoundLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 339, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         endFightPanelLayout.setVerticalGroup(
             endFightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(endFightPanelLayout.createSequentialGroup()
+                .addGap(19, 19, 19)
+                .addComponent(endRoundLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(endFightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(endFightPanelLayout.createSequentialGroup()
-                        .addGap(28, 28, 28)
-                        .addComponent(endRoundLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, endFightPanelLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(nextRoundButton, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(43, 43, 43)))
-                .addComponent(GIFLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 276, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(20, Short.MAX_VALUE))
+                        .addGap(78, 78, 78)
+                        .addComponent(GIFLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 276, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(endFightPanelLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(nextRoundButton, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout endFightDialogLayout = new javax.swing.GroupLayout(endFightDialog.getContentPane());
@@ -500,15 +515,14 @@ public class GUI extends JFrame {
             endFightDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(endFightDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(endFightPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(endFightPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 402, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         endFightDialogLayout.setVerticalGroup(
             endFightDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(endFightDialogLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(endFightPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, endFightDialogLayout.createSequentialGroup()
+                .addGap(0, 6, Short.MAX_VALUE)
+                .addComponent(endFightPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         endGamePanel.setBackground(new java.awt.Color(153, 0, 153));
@@ -1119,11 +1133,19 @@ public class GUI extends JFrame {
     }//GEN-LAST:event_startButtonActionPerformed
 
     private void attackButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_attackButtonActionPerformed
-        game.fight.hit(1, game.getResults(), locationsNumber, game.getEnemies());
+        try {
+            game.fight.hit(1, game.getResults(), locationsNumber, game.getEnemies());
+        } catch (IOException ex) {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_attackButtonActionPerformed
 
     private void blockButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_blockButtonActionPerformed
-        game.fight.hit(0, game.getResults(), locationsNumber, game.getEnemies());
+        try {
+            game.fight.hit(0, game.getResults(), locationsNumber, game.getEnemies());
+        } catch (IOException ex) {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_blockButtonActionPerformed
 
     private void nextRoundButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextRoundButtonActionPerformed
@@ -1140,7 +1162,11 @@ public class GUI extends JFrame {
             levelUp.setVisible(true);
             levelUp.setBounds(300, 200, 430, 350);
         }
-        game.fight.setEnemy(game.fight.location.getCurrentEnemy());
+        try {
+            game.fight.setEnemy(game.fight.location.getCurrentEnemy());
+        } catch (IOException ex) {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
         enemyIconLabel.setIcon(game.fight.getEnemy().getIcon());
         enemyDamageValueLabel.setText(Integer.toString(game.fight.getEnemy().getDamage()));
         enemyHealthLabel.setText(Integer.toString(game.fight.getEnemy().getHealth()) + "/" + Integer.toString(game.fight.getEnemy().getMaxHealth()));
@@ -1221,7 +1247,11 @@ public class GUI extends JFrame {
         locationsNumber = Integer.parseInt(setLocationsField.getText());
         locationLabel.setText("Текущая локация: " + game.fight.location.getCurrentLocation() + "/" + locationsNumber);
         game.fight.setPlayer(game.newPlayer(mediator, items));
-        game.fight.location.setEnemiesAtLocation(game.fight.getPlayer().getLevel());
+        try {
+            game.fight.location.setEnemiesAtLocation(game.fight.getPlayer().getLevel());
+        } catch (IOException ex) {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
         fightFrame.setVisible(true);
         fightFrame.setSize(1000, 700);
         if ((game.fight.location.getCurrentEnemyNumber() + 1) <= game.fight.location.getEnemiesAtLocation().size()) {
@@ -1229,7 +1259,11 @@ public class GUI extends JFrame {
         } else {
             enemyNumberLabel.setText("Финальный босс локации!");
         }
-        game.fight.setEnemy(game.fight.location.getCurrentEnemy());
+        try {
+            game.fight.setEnemy(game.fight.location.getCurrentEnemy());
+        } catch (IOException ex) {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
         enemyIconLabel.setIcon(game.fight.getEnemy().getIcon());
         enemyDamageValueLabel.setText(Integer.toString(game.fight.getEnemy().getDamage()));
         enemyHealthLabel.setText(Integer.toString(game.fight.getEnemy().getHealth()) + "/" + Integer.toString(game.fight.getEnemy().getMaxHealth()));
@@ -1263,7 +1297,11 @@ public class GUI extends JFrame {
     }//GEN-LAST:event_chooseAttributeButtonActionPerformed
 
     private void debuffButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_debuffButtonActionPerformed
-        game.fight.hit(2, game.getResults(), locationsNumber, game.getEnemies());
+        try {
+            game.fight.hit(2, game.getResults(), locationsNumber, game.getEnemies());
+        } catch (IOException ex) {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_debuffButtonActionPerformed
 
     /**

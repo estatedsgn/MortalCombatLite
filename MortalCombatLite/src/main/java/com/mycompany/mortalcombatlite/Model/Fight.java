@@ -11,6 +11,7 @@ package com.mycompany.mortalcombatlite.Model;
 import com.mycompany.mortalcombatlite.Heros.*;
 
 import com.mycompany.mortalcombatlite.Acts.*;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Fight {
@@ -76,7 +77,7 @@ public class Fight {
 
     }
 
-    public void hit(int a, ArrayList<Result> results, int locationsNumber, Enemy[] enemiesList) {
+    public void hit(int a, ArrayList<Result> results, int locationsNumber, Enemy[] enemiesList) throws IOException {
         PlayAct action = new PlayAct();
         Act enemyAction = action.chooseEnemyAction(enemy, new ArrayList<>(actionsList));
         switch (a) {
@@ -109,7 +110,7 @@ public class Fight {
         checkDeath(results, locationsNumber, enemiesList);
     }
 
-    public void checkDeath(ArrayList<Result> results, int locationsNumber, Enemy[] enemiesList) {
+    public void checkDeath(ArrayList<Result> results, int locationsNumber, Enemy[] enemiesList) throws IOException {
         if (player.getHealth() <= 0 & player.getItems()[2].getCount() > 0) {
             player.setHealth((int) (player.getMaxHealth() * 0.05));
             player.getItems()[2].setCount(-1);
@@ -126,7 +127,7 @@ public class Fight {
         }
     }
 
-    public void endRound(Enemy[] enemiesList) {
+    public void endRound(Enemy[] enemiesList) throws IOException {
         PlayAct action = new PlayAct();
         mediator.setEndFightDialog();
         if (player.getHealth() > 0) {
@@ -148,7 +149,7 @@ public class Fight {
         }
     }
 
-    public void reset(Enemy[] enemiesList) {
+    public void reset(Enemy[] enemiesList) throws IOException {
         PlayAct action = new PlayAct();
         player.setDamage(16);
         player.setHealth(80);
