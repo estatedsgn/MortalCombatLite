@@ -1,0 +1,156 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Острова Племён</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: 3D-мир на весь экран, поверх — плавающий HUD: статы сверху, карточка выбора снизу, кнопки хода справа. */
+:root {
+  --panel: rgba(18, 30, 46, 0.88);
+  --panel-2: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.14);
+  --fg: #ffffff;
+  --muted: #b7c6d6;
+  --star: #ffd23f;
+  --go: #46c35a;
+  --blue: #3fa2f7;
+  --danger: #ff5a4f;
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; }
+[hidden] { display: none !important; }
+body { background: #2a8fb8; color: var(--fg); font: 700 15px/1.35 var(--font); -webkit-tap-highlight-color: transparent; user-select: none; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+button:focus-visible { outline: 3px solid var(--star); outline-offset: 2px; }
+#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+.hud { position: fixed; inset: 0; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.top {
+  position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; background: var(--panel); border-radius: 18px; padding: 6px 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25); max-width: calc(100% - 32px);
+}
+.stat { min-width: 74px; text-align: center; padding: 2px 10px; }
+.stat .k { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.stat .v { font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat .v small { font-size: 13px; color: var(--muted); font-weight: 800; }
+.stat.stars .v { color: var(--star); }
+.tribe-badge {
+  position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px));
+  display: flex; align-items: center; gap: 8px; background: var(--panel); border-radius: 18px; padding: 8px 12px; font-weight: 900;
+}
+.tribe-badge i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+.menu-btn { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); background: var(--panel); border-radius: 14px; padding: 10px 14px; font-weight: 900; }
+@media (max-width: 720px) {
+  .tribe-badge { display: none; }
+  .top { top: calc(8px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); transform: none; }
+  .stat { min-width: 0; padding: 2px 6px; }
+  .stat .v { font-size: 18px; }
+}
+
+.bottom {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  width: min(640px, calc(100% - 32px - 150px)); display: grid; gap: 8px;
+}
+@media (max-width: 720px) { .bottom { width: calc(100% - 32px); bottom: calc(76px + env(safe-area-inset-bottom, 0px)); } }
+.card { background: var(--panel); border-radius: 20px; padding: 12px 14px; box-shadow: 0 8px 22px rgba(0,0,0,.28); display: grid; gap: 8px; }
+.card .title { font-size: 18px; font-weight: 900; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card .title i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.card .desc { color: var(--muted); font-size: 14px; font-weight: 700; }
+.stats-row { display: flex; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.stats-row b { color: var(--fg); }
+.stats-row span { color: var(--muted); }
+.acts { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.act {
+  flex: 0 0 auto; width: 74px; display: grid; justify-items: center; gap: 2px; background: none; padding: 0;
+}
+.act .ic { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; background: var(--blue); box-shadow: inset 0 -4px 0 rgba(0,0,0,.2); transition: transform .12s; }
+.act:hover:not(:disabled) .ic { transform: translateY(-2px); }
+.act .n { font-size: 12px; font-weight: 800; text-align: center; line-height: 1.1; }
+.act .c { font-size: 12px; font-weight: 900; color: var(--star); }
+.act:disabled { cursor: not-allowed; }
+.act:disabled .ic { background: #4a5868; filter: grayscale(1); opacity: .6; }
+.act:disabled .n, .act:disabled .c { opacity: .55; }
+.act.green .ic { background: var(--go); }
+.act.gold .ic { background: #e9a91c; }
+
+.side { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 10px; justify-items: end; }
+@media (max-width: 720px) { .side { left: max(16px, env(safe-area-inset-left, 0px)); grid-auto-flow: column; justify-content: space-between; align-items: end; } }
+.round { width: 60px; height: 60px; border-radius: 50%; background: var(--panel); font-size: 26px; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(0,0,0,.25); position: relative; }
+.round .lbl { position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); font-size: 10px; background: var(--panel); padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+.next { background: var(--go); border-radius: 20px; padding: 14px 20px; font-size: 18px; font-weight: 900; box-shadow: inset 0 -5px 0 rgba(0,0,0,.18), 0 6px 16px rgba(0,0,0,.25); }
+.next:disabled { background: #4a5868; opacity: .8; cursor: wait; }
+
+.toast { position: absolute; top: calc(78px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); background: var(--panel); padding: 8px 16px; border-radius: 14px; font-weight: 900; transition: opacity .3s, transform .3s; pointer-events: none; white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
+
+/* Оверлеи */
+.overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(10, 25, 40, 0.35);
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.sheet { background: var(--panel); border-radius: 26px; padding: 22px; width: min(560px, 100%); max-height: 100%; overflow: auto; display: grid; gap: 14px; box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+.sheet h1 { margin: 0; font-size: clamp(34px, 7vw, 54px); font-weight: 900; line-height: 1; letter-spacing: -.01em; text-wrap: balance; }
+.sheet h2 { margin: 0; font-size: 26px; font-weight: 900; text-wrap: balance; }
+.sheet p { margin: 0; color: var(--muted); }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.tribes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 460px) { .tribes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tribe { border-radius: 16px; padding: 12px 8px; background: var(--panel-2); border: 3px solid transparent; display: grid; justify-items: center; gap: 6px; font-weight: 900; }
+.tribe i { width: 34px; height: 34px; border-radius: 50%; display: block; box-shadow: inset 0 -4px 0 rgba(0,0,0,.2); }
+.tribe.on { border-color: #fff; background: rgba(255,255,255,.14); }
+.seg { display: flex; gap: 8px; }
+.seg button { flex: 1; padding: 10px; border-radius: 14px; background: var(--panel-2); font-weight: 900; border: 3px solid transparent; }
+.seg button.on { border-color: #fff; background: rgba(255,255,255,.14); }
+.big { background: var(--go); border-radius: 18px; padding: 16px; font-size: 22px; font-weight: 900; box-shadow: inset 0 -5px 0 rgba(0,0,0,.18); }
+.ghost { background: var(--panel-2); border-radius: 16px; padding: 12px; font-weight: 900; }
+.rules { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--muted); font-size: 14px; }
+.rules b { color: var(--fg); }
+
+.tree { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 640px) { .tree { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.branch { display: grid; gap: 6px; align-content: start; }
+.tech { border-radius: 14px; padding: 8px; background: var(--panel-2); text-align: left; display: grid; gap: 2px; border: 2px solid transparent; }
+.tech .n { font-weight: 900; font-size: 14px; }
+.tech .g { font-size: 12px; color: var(--muted); font-weight: 700; }
+.tech .c { font-size: 13px; color: var(--star); font-weight: 900; }
+.tech.owned { background: rgba(70, 195, 90, .25); border-color: rgba(70, 195, 90, .7); }
+.tech.owned .c { color: #8fe39c; }
+.tech.can { border-color: var(--blue); }
+.tech:disabled:not(.owned) { opacity: .45; cursor: not-allowed; }
+.tech.owned { cursor: default; }
+.tier-arrow { text-align: center; color: var(--muted); font-size: 12px; line-height: 1; }
+.rewards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.reward { border-radius: 18px; padding: 14px; background: var(--panel-2); text-align: left; display: grid; gap: 4px; border: 3px solid transparent; }
+.reward:hover { border-color: var(--star); }
+.reward b { font-size: 18px; font-weight: 900; }
+.reward span { color: var(--muted); font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<canvas id="world"></canvas>
+
+<div class="hud" id="hud" hidden>
+  <div class="tribe-badge" id="tribeBadge"><i></i><span></span></div>
+  <div class="top">
+    <div class="stat"><div class="k">Очки</div><div class="v" id="hScore">0</div></div>
+    <div class="stat"><div class="k">Ход</div><div class="v" id="hTurn">1</div></div>
+    <div class="stat stars"><div class="k">Звёзды</div><div class="v" id="hStars">5 <small>(+2)</small></div></div>
+  </div>
+  <button class="menu-btn" id="btnMenu" aria-label="Меню">☰</button>
+  <div class="toast" id="toast" style="opacity:0"></div>
+  <div class="bottom"><div class="card" id="card" hidden></div></div>
+  <div class="side">
+    <button class="round" id="btnTech" aria-label="Технологии">🔬<span class="lbl">Технологии</span></button>
+    <button class="next" id="btnNext">Следующий ход</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="logic.js" charset="utf-8"></script>
+<script src="view.js" charset="utf-8"></script>
+<script src="app.js" charset="utf-8"></script>
