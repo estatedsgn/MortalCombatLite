@@ -4,7 +4,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Neucha&family=Rubik:wght@600;800&family=Rubik+Mono+One&family=Unbounded:wght@500;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Comfortaa:wght@500;700&family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@500;600&family=Manrope:wght@600;800&family=Neucha&family=Rubik:wght@600;800&family=Rubik+Mono+One&family=Unbounded:wght@500;800&display=swap">
 <style>
 /* Layout: одна карта на весь экран, сверху переключатель стилей, поверх каждой карты — свой HUD.
    Каждый стиль задаёт свои цвета и шрифты через body[data-style]. */
@@ -39,6 +39,60 @@ button:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
 .hud .top { position: absolute; top: calc(88px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); display: flex; justify-content: center; gap: 12px; }
 .hud .bottom { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: flex-end; justify-content: center; gap: 12px; flex-wrap: wrap; }
 .hud .acts { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+
+.switch .sep { align-self: center; padding: 0 4px 0 10px; opacity: .55; font-size: 12px; white-space: nowrap; }
+.switch button.old { opacity: .7; }
+
+/* ---------- Тетрадь ---------- */
+body[data-style="note"] { --bg: #fbfbf7; --switch-bg: rgba(35, 64, 168, 0.08); --switch-fg: #2340a8; --switch-on: #2340a8; --switch-on-fg: #fbfbf7; color: #2340a8; color-scheme: light; }
+body[data-style="note"] .hud { font-family: Caveat, cursive; color: #2340a8; }
+.nb-note { --r: -2deg; background: #fff27a; color: #2b2b2b; padding: 6px 16px 10px; font-size: 26px; font-weight: 700; transform: rotate(var(--r)); box-shadow: 0 6px 10px rgba(0,0,0,.12); }
+.nb-note small { font-size: 18px; opacity: .7; }
+.nb-card { border: 2px solid #2340a8; border-radius: 14px 18px 12px 20px / 18px 12px 20px 14px; padding: 8px 14px; background: rgba(251,251,247,.92); display: grid; gap: 2px; max-width: 100%; }
+.nb-card .t { font-size: 26px; font-weight: 700; }
+.nb-card .s { font-size: 19px; color: #4b5a9c; }
+.nb-act { display: grid; justify-items: center; width: 70px; font-size: 18px; line-height: 1; }
+.nb-act i { width: 40px; height: 40px; border: 2px solid #2340a8; border-radius: 48% 52% 45% 55%; display: grid; place-items: center; font-style: normal; font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+.nb-act b { color: #d23a2f; }
+.nb-next { font-size: 28px; font-weight: 700; color: #d23a2f; padding: 6px 14px; border: 2.5px solid #d23a2f; border-radius: 20px 14px 22px 12px / 12px 22px 14px 20px; background: rgba(251,251,247,.92); }
+
+/* ---------- Огни ---------- */
+body[data-style="night"] { --bg: #070b16; --switch-bg: rgba(255, 255, 255, 0.08); }
+body[data-style="night"] .hud { font-family: Comfortaa, system-ui, sans-serif; color: #ffe2b8; }
+.nt-stat { font-size: 14px; opacity: .85; padding: 0 10px; }
+.nt-stat b { font-size: 26px; font-weight: 700; color: #ffcf8a; text-shadow: 0 0 14px rgba(255,190,105,.7); }
+.nt-stat small { color: #ffcf8a; }
+.nt-hint { font-size: 13px; opacity: .75; text-align: center; }
+.nt-card { display: grid; gap: 6px; justify-items: center; }
+.nt-card .t { font-size: 18px; font-weight: 700; color: #ffcf8a; text-shadow: 0 0 12px rgba(255,190,105,.6); }
+.nt-act { display: grid; justify-items: center; width: 70px; font-size: 11px; gap: 3px; }
+.nt-act i { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 700; color: #2a1a05; background: radial-gradient(circle, #fff3d6 0%, #ffbf69 55%, #c77a2a 100%); box-shadow: 0 0 18px rgba(255,190,105,.6); }
+.nt-act b { color: #ffcf8a; }
+.nt-next { border: 1.5px solid rgba(255,207,138,.7); color: #ffcf8a; padding: 10px 28px; border-radius: 999px; font-weight: 700; box-shadow: 0 0 20px rgba(255,190,105,.25); }
+
+/* ---------- Ризограф ---------- */
+body[data-style="riso"] { --bg: #f4f2ee; --switch-bg: rgba(255, 72, 176, 0.12); --switch-fg: #c0247f; --switch-on: #ff48b0; --switch-on-fg: #fff; color: #1b1b1f; color-scheme: light; }
+body[data-style="riso"] .hud { font-family: Rubik, system-ui, sans-serif; color: #1b1b1f; }
+.rs-sticker { --c: #ff48b0; --r: -3deg; font-family: "Dela Gothic One", sans-serif; background: var(--c); color: #fff; padding: 8px 16px; font-size: 20px; transform: rotate(var(--r)); mix-blend-mode: multiply; }
+.rs-card { background: #ffe14a; padding: 10px 14px; display: grid; gap: 4px; max-width: 100%; mix-blend-mode: multiply; box-shadow: 4px 4px 0 #0078bf; }
+.rs-card .t { font-family: "Dela Gothic One", sans-serif; font-size: 22px; color: #c0247f; }
+.rs-card .s { font-size: 13px; font-weight: 600; }
+.rs-act { display: grid; justify-items: center; width: 68px; font-size: 11px; font-weight: 800; gap: 2px; }
+.rs-act i { width: 44px; height: 44px; border-radius: 50%; background: #ff48b0; color: #fff; display: grid; place-items: center; font-style: normal; font-family: "Dela Gothic One", sans-serif; font-size: 18px; }
+.rs-act b { color: #0078bf; }
+.rs-next { font-family: "Dela Gothic One", sans-serif; background: #0078bf; color: #fff; padding: 16px 20px; font-size: 16px; box-shadow: 4px 4px 0 #ff48b0; }
+
+/* ---------- Капли ---------- */
+body[data-style="drops"] { --bg: #e9edf2; --switch-bg: rgba(40, 60, 90, 0.08); --switch-fg: #3b4552; --switch-on: #3b4552; --switch-on-fg: #fff; color: #3b4552; color-scheme: light; }
+body[data-style="drops"] .hud { font-family: Manrope, system-ui, sans-serif; color: #3b4552; }
+.dr-stat { display: grid; justify-items: center; font-size: 12px; font-weight: 600; opacity: .8; padding: 0 12px; }
+.dr-stat b { font-size: 28px; font-weight: 800; line-height: 1; }
+.dr-hint { font-size: 13px; font-weight: 600; opacity: .7; text-align: center; }
+.dr-card { display: flex; gap: 10px; align-items: center; background: #fff; padding: 10px; border-radius: 999px; box-shadow: 0 10px 30px rgba(40,60,90,.15); max-width: 100%; }
+.dr-act { display: grid; justify-items: center; width: 62px; font-size: 10px; font-weight: 600; gap: 2px; }
+.dr-act i { width: 38px; height: 38px; border-radius: 50%; background: #ff5a36; color: #fff; display: grid; place-items: center; font-style: normal; font-weight: 800; }
+.dr-act b { color: #f2a91c; font-weight: 800; }
+.dr-next { background: #3b4552; color: #fff; border-radius: 999px; height: 52px; padding: 0 22px; font-weight: 800; flex: none; }
 
 /* ---------- Штаб ---------- */
 body[data-style="maps"] { --bg: #e6e9df; --switch-bg: rgba(38, 48, 42, 0.08); --switch-fg: #26302a; --switch-on: #26302a; --switch-on-fg: #e6e9df; color: #26302a; color-scheme: light; }
@@ -900,8 +954,488 @@ body[data-style="board"] .hud { font-family: Rubik, system-ui, sans-serif; }
     return { id: 'board', name: 'Настолка', about: 'Картонные гексы на сукне, деревянные мипли и дома. Туман — тайлы рубашкой вверх: наведите и кликните, чтобы перевернуть.', draw, hud, click, reset };
   })();
 
+  // ---------- Общие помощники для новых стилей ----------
+  // Сплошное пятно по клеткам: круги в центрах и «перемычки» к соседям.
+  function blobOn(c, test, rad, T, ox, oy, jitter) {
+    const r = rng(91);
+    c.lineCap = 'round';
+    for (const t of all()) {
+      if (!test(t)) continue;
+      const cx = ox + (t.x + 0.5) * T, cy = oy + (t.y + 0.5) * T, rr = rad * (jitter ? 1 - jitter / 2 + r() * jitter : 1);
+      c.beginPath(); c.arc(cx, cy, rr, 0, Math.PI * 2); c.fill();
+      for (const [dx, dy] of [[1, 0], [0, 1], [1, 1], [-1, 1]]) {
+        const n = at(t.x + dx, t.y + dy);
+        if (!n || !test(n)) continue;
+        c.lineWidth = rr * 2; c.beginPath(); c.moveTo(cx, cy); c.lineTo(ox + (n.x + 0.5) * T, oy + (n.y + 0.5) * T); c.stroke();
+      }
+    }
+  }
+  const layer = () => { const cv = document.createElement('canvas'); cv.width = vw * dpr; cv.height = vh * dpr; const c = cv.getContext('2d'); c.scale(dpr, dpr); return [cv, c]; };
+
+  // ======================================================================
+  // 5. Тетрадь: ручка, маркеры и карандаш в тетради в клетку. Линии «дрожат».
+  // ======================================================================
+  const NOTE = (function () {
+    const PAPER = '#fbfbf7', PEN = ['#2340a8', '#d23a2f'], GREY = 'rgba(80,82,92,0.6)';
+    const MARK = ['rgba(255,229,64,0.55)', 'rgba(255,120,190,0.42)'];
+    let T = 40, ox = 0, oy = 0;
+    function layout() {
+      T = Math.min((vw - 40) / (W + 0.3), (vh - 300) / (H - 0.6));
+      T = Math.floor(T / 2) * 2;
+      ox = Math.round((vw - W * T) / 2 / (T / 2)) * (T / 2); oy = Math.round(((vh - H * T) / 2 + 4) / (T / 2)) * (T / 2);
+    }
+    let seed = 0;
+    function line(pts, col, w) {
+      const r = rng(seed++ * 7919 + boil);
+      ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => { const px = x + (r() - 0.5) * 1.6, py = y + (r() - 0.5) * 1.6; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); });
+      ctx.stroke();
+    }
+    function seg(x1, y1, x2, y2, col, w) {
+      const n = Math.max(2, Math.round(Math.hypot(x2 - x1, y2 - y1) / 7));
+      const pts = []; for (let i = 0; i <= n; i++) pts.push([x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n]);
+      line(pts, col, w);
+    }
+    function loop(cx, cy, rx, ry, col, w) {
+      const pts = []; for (let i = 0; i <= 12; i++) { const a = (i / 12) * Math.PI * 2 + 0.3; pts.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]); }
+      line(pts, col, w);
+    }
+    function person(cx, cy, s, col, kind, hp) {
+      const head = cy - s * 0.55;
+      loop(cx, head, s * 0.16, s * 0.16, col, 1.8);
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(cx - s * 0.05, head - s * 0.02, 1.3, 0, 7); ctx.arc(cx + s * 0.06, head - s * 0.02, 1.3, 0, 7); ctx.fill();
+      if (kind === 'rider') {
+        line([[cx - s * 0.42, cy - s * 0.05], [cx + s * 0.3, cy - s * 0.08], [cx + s * 0.45, cy - s * 0.32], [cx + s * 0.52, cy - s * 0.25]], col, 1.8);
+        line([[cx - s * 0.42, cy - s * 0.05], [cx - s * 0.4, cy + s * 0.12], [cx + s * 0.3, cy + s * 0.1], [cx + s * 0.3, cy - s * 0.08]], col, 1.8);
+        for (const lx of [-0.34, -0.18, 0.12, 0.26]) seg(cx + s * lx, cy + s * 0.12, cx + s * lx, cy + s * 0.32, col, 1.6);
+        seg(cx, head + s * 0.16, cx, cy - s * 0.08, col, 1.8);
+      } else {
+        seg(cx, head + s * 0.16, cx, cy - s * 0.02, col, 1.8);
+        line([[cx - s * 0.16, cy + s * 0.3], [cx, cy - s * 0.02], [cx + s * 0.16, cy + s * 0.3]], col, 1.8);
+        line([[cx - s * 0.22, cy - s * 0.32], [cx, cy - s * 0.24], [cx + s * 0.22, cy - s * 0.32]], col, 1.8);
+      }
+      if (kind === 'warrior') seg(cx + s * 0.22, cy - s * 0.32, cx + s * 0.38, cy - s * 0.72, col, 2.2);
+      if (kind === 'archer') { const pts = []; for (let i = 0; i <= 8; i++) { const a = -1.1 + (i / 8) * 2.2; pts.push([cx + s * 0.2 + Math.cos(a) * s * 0.24, cy - s * 0.32 + Math.sin(a) * s * 0.24]); } line(pts, col, 1.8); }
+      if (kind === 'defender') loop(cx - s * 0.26, cy - s * 0.24, s * 0.13, s * 0.17, col, 2);
+      ctx.fillStyle = col; ctx.font = `${Math.max(14, s * 0.42)}px Caveat, cursive`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(hp, cx + s * 0.34, cy + s * 0.1);
+    }
+    let boil = 0;
+    function draw(t) {
+      layout();
+      boil = Math.floor(t * 6) % 3;
+      seed = 0;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = PAPER; ctx.fillRect(0, 0, vw, vh);
+      const c = T / 2;
+      ctx.strokeStyle = 'rgba(80,130,210,0.22)'; ctx.lineWidth = 1;
+      for (let x = ox % c; x < vw; x += c) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, vh); ctx.stroke(); }
+      for (let y = oy % c; y < vh; y += c) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(vw, y + 0.5); ctx.stroke(); }
+      ctx.strokeStyle = 'rgba(220,70,70,0.55)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(Math.max(18, ox - c * 2) + 0.5, 0); ctx.lineTo(Math.max(18, ox - c * 2) + 0.5, vh); ctx.stroke();
+      // Маркеры поверх клеток территорий.
+      ctx.save(); ctx.globalCompositeOperation = 'multiply';
+      for (const tile of all()) {
+        if (tile.owner < 0 || tile.fog) continue;
+        const r = rng(tile.x * 5 + tile.y * 11);
+        ctx.fillStyle = MARK[tile.owner];
+        ctx.fillRect(ox + tile.x * T - 1 + r() * 2, oy + tile.y * T + 2 + r() * 2, T + 1, T - 4);
+      }
+      ctx.restore();
+      for (const tile of all()) {
+        const x = ox + tile.x * T, y = oy + tile.y * T, cx = x + T / 2, cy = y + T / 2;
+        const r = rng(tile.x * 13 + tile.y * 7);
+        if (tile.fog) continue;
+        if (!isLand(tile)) { if (r() < 0.35) line([[cx - T * 0.2, cy], [cx - T * 0.1, cy - 3], [cx, cy], [cx + T * 0.1, cy - 3], [cx + T * 0.2, cy]], 'rgba(35,64,168,0.45)', 1.3); }
+        else {
+          for (const [dx, dy, x1, y1, x2, y2] of [[0, -1, x, y, x + T, y], [0, 1, x, y + T, x + T, y + T], [-1, 0, x, y, x, y + T], [1, 0, x + T, y, x + T, y + T]]) {
+            if (!isLand(at(tile.x + dx, tile.y + dy))) seg(x1, y1, x2, y2, PEN[0], 2);
+          }
+        }
+        if (tile.t === 'forest') for (const [fx, fy, s] of [[-0.18, 0.05, 1], [0.18, -0.08, 0.8]]) { loop(cx + fx * T, cy + fy * T - T * 0.12, T * 0.13 * s, T * 0.11 * s, PEN[0], 1.6); seg(cx + fx * T, cy + fy * T - T * 0.01, cx + fx * T, cy + fy * T + T * 0.16 * s, PEN[0], 1.6); }
+        if (tile.t === 'mountain') { line([[cx - T * 0.36, cy + T * 0.25], [cx - T * 0.1, cy - T * 0.25], [cx + T * 0.06, cy + T * 0.02], [cx + T * 0.18, cy - T * 0.12], [cx + T * 0.38, cy + T * 0.25]], PEN[0], 1.8); line([[cx - T * 0.18, cy - T * 0.1], [cx - T * 0.1, cy - T * 0.04], [cx - T * 0.02, cy - T * 0.1]], PEN[0], 1.4); }
+        if (tile.t === 'field' && !tile.city && !tile.unit && r() < 0.5) { line([[cx - 6, cy + 4], [cx - 3, cy + 8], [cx, cy + 2]], 'rgba(35,64,168,0.55)', 1.3); }
+        if (tile.res === 'fruit') { loop(cx + T * 0.24, cy + T * 0.24, T * 0.07, T * 0.07, PEN[1], 1.6); seg(cx + T * 0.24, cy + T * 0.17, cx + T * 0.28, cy + T * 0.11, '#2f8a3a', 1.4); }
+        if (tile.res === 'fish') { line([[cx - T * 0.15, cy], [cx - T * 0.05, cy - T * 0.07], [cx + T * 0.08, cy], [cx - T * 0.05, cy + T * 0.07], [cx - T * 0.15, cy], [cx - T * 0.22, cy - T * 0.06], [cx - T * 0.22, cy + T * 0.06], [cx - T * 0.15, cy]], PEN[0], 1.4); }
+        if (tile.res === 'crop') for (let k = -1; k <= 1; k++) seg(cx + T * 0.25 + k * 4, cy + T * 0.34, cx + T * 0.25 + k * 4, cy + T * 0.14, '#b48a1f', 1.6);
+        if (tile.res === 'animal') { loop(cx + T * 0.24, cy + T * 0.26, T * 0.1, T * 0.06, PEN[0], 1.4); line([[cx + T * 0.32, cy + T * 0.22], [cx + T * 0.36, cy + T * 0.1], [cx + T * 0.4, cy + T * 0.16]], PEN[0], 1.4); }
+        if (tile.res === 'ore') line([[cx + T * 0.3, cy + T * 0.14], [cx + T * 0.37, cy + T * 0.24], [cx + T * 0.3, cy + T * 0.34], [cx + T * 0.23, cy + T * 0.24], [cx + T * 0.3, cy + T * 0.14]], PEN[0], 1.5);
+        if (tile.city) {
+          const ct = tile.city;
+          const col = ct.owner < 0 ? GREY : PEN[ct.owner];
+          if (ct.owner < 0) { line([[cx - T * 0.18, cy + T * 0.2], [cx - T * 0.18, cy - T * 0.02], [cx, cy - T * 0.2], [cx + T * 0.18, cy - T * 0.02], [cx + T * 0.18, cy + T * 0.2], [cx - T * 0.18, cy + T * 0.2]], col, 1.8); }
+          else {
+            const w = T * 0.24;
+            line([[cx - w, cy + T * 0.26], [cx - w, cy - T * 0.12], [cx - w * 0.6, cy - T * 0.12], [cx - w * 0.6, cy - T * 0.04], [cx - w * 0.2, cy - T * 0.04], [cx - w * 0.2, cy - T * 0.12], [cx + w * 0.2, cy - T * 0.12], [cx + w * 0.2, cy - T * 0.04], [cx + w * 0.6, cy - T * 0.04], [cx + w * 0.6, cy - T * 0.12], [cx + w, cy - T * 0.12], [cx + w, cy + T * 0.26], [cx - w, cy + T * 0.26]], col, 2);
+            line([[cx - w * 0.25, cy + T * 0.26], [cx - w * 0.25, cy + T * 0.08], [cx + w * 0.25, cy + T * 0.08], [cx + w * 0.25, cy + T * 0.26]], col, 1.6);
+            if (ct.cap) { seg(cx, cy - T * 0.12, cx, cy - T * 0.46, col, 1.6); line([[cx, cy - T * 0.46], [cx + T * 0.2, cy - T * 0.4], [cx, cy - T * 0.33]], col, 1.6); }
+            ctx.fillStyle = col; ctx.font = `${Math.max(15, T * 0.34)}px Caveat, cursive`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+            ctx.fillText(ct.name, cx, cy + T * 0.3);
+          }
+        }
+      }
+      for (const u of UNITS) {
+        const tile = at(u.x, u.y);
+        if (tile.fog) continue;
+        const off = tile.city ? T * 0.36 : 0;
+        person(ox + (u.x + 0.5) * T + off, oy + (u.y + 0.5) * T + T * 0.1, T * 0.7, PEN[u.o], u.t, u.hp);
+      }
+      // Неразведанное заштриховано карандашом.
+      for (const tile of all()) {
+        if (!tile.fog) continue;
+        const x = ox + tile.x * T, y = oy + tile.y * T;
+        const r = rng(tile.x * 3 + tile.y * 17 + boil);
+        ctx.strokeStyle = 'rgba(95,98,110,0.42)'; ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        for (let k = 0; k < 9; k++) { const a = k / 9 * T * 2 - T * 0.5; ctx.moveTo(x + a + r() * 2, y + r() * 2); ctx.lineTo(x + a - T + r() * 2, y + T + r() * 2); }
+        ctx.save(); ctx.beginPath(); ctx.rect(x, y, T, T); ctx.clip();
+        ctx.beginPath();
+        for (let k = 0; k < 12; k++) { const a = k / 12 * T * 2 - T * 0.3; ctx.moveTo(x + a + r() * 2, y + r() * 2); ctx.lineTo(x + a - T * 1.1 + r() * 2, y + T + r() * 2); }
+        ctx.stroke(); ctx.restore();
+      }
+      ctx.fillStyle = 'rgba(70,72,82,0.8)'; ctx.font = `${Math.max(20, T * 0.6)}px Caveat, cursive`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('?', ox + 11.5 * T, oy + 2.5 * T); ctx.fillText('?', ox + 12.5 * T, oy + 5.4 * T);
+    }
+    const hud = () => `
+      <div class="top"><div class="nb-note">Ход 7</div><div class="nb-note" style="--r:2deg;background:#bdf0c6">★ 12 <small>+4</small></div></div>
+      <div class="bottom"><div class="nb-card"><div class="t">Арвен — наша столица</div><div class="s">Нажми на человечка, чтобы сходить. Или найми нового:</div>
+        <div class="acts">${ACTS.map(([k, n, c]) => `<div class="nb-act"><i>${LETTER[k]}</i>${n}<b>★${c}</b></div>`).join('')}</div></div>
+        <button class="nb-next">Ход готов →</button></div>`;
+    return { id: 'note', name: 'Тетрадь', about: 'Как морской бой на уроке: ручка, маркеры, карандаш. Линии живые, человечки рисованные, туман — штриховка.', draw, hud };
+  })();
+
+  // ======================================================================
+  // 6. Огни: ночной мир. Свет — это то, что ты открыл и чем владеешь.
+  // ======================================================================
+  const NIGHT = (function () {
+    const LIGHT = [[255, 190, 105], [125, 205, 255]];
+    let T = 40, ox = 0, oy = 0, lastKey = '', day = null, lm = null, lmc = null;
+    const flies = [];
+    function layout() { T = Math.min((vw - 30) / (W + 0.2), (vh - 280) / (H - 0.8)); ox = (vw - W * T) / 2; oy = (vh - H * T) / 2 + 6; }
+    function build() {
+      layout();
+      let c;
+      [day, c] = layer();
+      c.fillStyle = '#16264a'; c.fillRect(0, 0, vw, vh);
+      c.fillStyle = c.strokeStyle = '#1f3a5e'; blobOn(c, (t) => t.t !== 'deep', T * 0.62, T, ox, oy);
+      c.fillStyle = c.strokeStyle = '#3d6a4b'; blobOn(c, isLand, T * 0.56, T, ox, oy, 0.1);
+      c.fillStyle = c.strokeStyle = '#2f5a3e'; blobOn(c, (t) => t.t === 'forest', T * 0.42, T, ox, oy, 0.2);
+      const r = rng(8);
+      for (const t of all()) {
+        const cx = ox + (t.x + 0.5) * T, cy = oy + (t.y + 0.5) * T;
+        if (t.t === 'forest') for (let k = 0; k < 4; k++) { const px = cx + (r() - 0.5) * T * 0.6, py = cy + (r() - 0.5) * T * 0.6; c.fillStyle = '#1d3d2a'; c.beginPath(); c.moveTo(px, py - T * 0.2); c.lineTo(px + T * 0.09, py + T * 0.06); c.lineTo(px - T * 0.09, py + T * 0.06); c.fill(); }
+        if (t.t === 'mountain') { c.fillStyle = '#69707e'; c.beginPath(); c.moveTo(cx - T * 0.38, cy + T * 0.26); c.lineTo(cx, cy - T * 0.34); c.lineTo(cx + T * 0.38, cy + T * 0.26); c.fill(); c.fillStyle = '#e8ecf4'; c.beginPath(); c.moveTo(cx - T * 0.1, cy - T * 0.18); c.lineTo(cx, cy - T * 0.34); c.lineTo(cx + T * 0.1, cy - T * 0.18); c.fill(); }
+        if (t.city) { c.fillStyle = '#2a2f3c'; for (const [hx, hy, hw, hh] of [[-0.22, 0.05, 0.18, 0.2], [0.04, -0.06, 0.2, 0.32], [0.2, 0.08, 0.14, 0.16]]) c.fillRect(cx + hx * T, cy + hy * T - hh * T / 2, hw * T, hh * T); }
+        if (t.res === 'fish') { c.fillStyle = '#4c7fb0'; c.beginPath(); c.ellipse(cx, cy, T * 0.08, T * 0.035, 0.3, 0, 7); c.fill(); }
+      }
+      [lm, lmc] = layer();
+      flies.length = 0;
+      const rf = rng(12);
+      for (let k = 0; k < 40; k++) flies.push({ x: ox + rf() * W * T, y: oy + rf() * H * T, p: rf() * 6, s: 0.3 + rf() });
+    }
+    function glow(c, x, y, rad, col, a) {
+      const g = c.createRadialGradient(x, y, 0, x, y, rad);
+      g.addColorStop(0, `rgba(${col[0]},${col[1]},${col[2]},${a})`);
+      g.addColorStop(1, `rgba(${col[0]},${col[1]},${col[2]},0)`);
+      c.fillStyle = g; c.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    }
+    function draw(t) {
+      const key = vw + 'x' + vh + 'x' + dpr;
+      if (key !== lastKey) { lastKey = key; build(); }
+      // Карта освещения: тусклый лунный свет там, где уже бывали, и тёплые источники.
+      lmc.setTransform(dpr, 0, 0, dpr, 0, 0);
+      lmc.globalCompositeOperation = 'source-over';
+      lmc.fillStyle = '#000'; lmc.fillRect(0, 0, vw, vh);
+      lmc.fillStyle = '#3a4566';
+      for (const tile of all()) if (!tile.fog) lmc.fillRect(ox + tile.x * T - T * 0.3, oy + tile.y * T - T * 0.3, T * 1.6, T * 1.6);
+      lmc.filter = 'none';
+      lmc.globalCompositeOperation = 'lighter';
+      for (const tile of all()) if (tile.owner >= 0 && !tile.fog) glow(lmc, ox + (tile.x + 0.5) * T, oy + (tile.y + 0.5) * T, T * 1.1, LIGHT[tile.owner], 0.28);
+      for (const c of CITIES) {
+        if (at(c.x, c.y).fog) continue;
+        const cx = ox + (c.x + 0.5) * T, cy = oy + (c.y + 0.5) * T;
+        if (c.owner < 0) glow(lmc, cx, cy, T * (0.9 + Math.sin(t * 9 + c.x) * 0.05), [255, 200, 140], 0.55);
+        else glow(lmc, cx, cy, T * (1.9 + c.level * 0.25), LIGHT[c.owner], 0.95);
+      }
+      for (const u of UNITS) {
+        if (at(u.x, u.y).fog) continue;
+        const fl = 1 + Math.sin(t * 7 + u.x * 3) * 0.04 + Math.sin(t * 13 + u.y) * 0.03;
+        glow(lmc, ox + (u.x + 0.5) * T, oy + (u.y + 0.5) * T, T * 1.15 * fl, LIGHT[u.o], 0.85);
+      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(day, 0, 0);
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.filter = `blur(${Math.round(T * 0.25 * dpr)}px)`;
+      ctx.drawImage(lm, 0, 0);
+      ctx.filter = 'none';
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Источники света поверх: окна, фонари, светлячки.
+      ctx.globalCompositeOperation = 'lighter';
+      for (const c of CITIES) {
+        if (at(c.x, c.y).fog) continue;
+        const cx = ox + (c.x + 0.5) * T, cy = oy + (c.y + 0.5) * T;
+        const col = c.owner < 0 ? [255, 200, 140] : LIGHT[c.owner];
+        const r = rng(c.x * 9 + c.y);
+        const n = c.owner < 0 ? 2 : 4 + c.level * 2;
+        for (let k = 0; k < n; k++) {
+          const on = Math.sin(t * 0.7 + k * 2.1 + c.x) > -0.7;
+          if (!on) { r(); r(); continue; }
+          ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},0.95)`;
+          ctx.fillRect(cx + (r() - 0.5) * T * 0.5, cy + (r() - 0.6) * T * 0.4, 3, 3);
+        }
+        if (c.owner >= 0) { ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},0.9)`; ctx.font = `700 ${Math.max(11, T * 0.22)}px Comfortaa, sans-serif`; ctx.textAlign = 'center'; ctx.fillText(c.name, cx, cy + T * 0.58); }
+      }
+      for (const u of UNITS) {
+        if (at(u.x, u.y).fog) continue;
+        const off = at(u.x, u.y).city ? T * 0.3 : 0;
+        const x = ox + (u.x + 0.5) * T + off, y = oy + (u.y + 0.5) * T + off + Math.sin(t * 2 + u.x) * 2;
+        glow(ctx, x, y, T * 0.32, LIGHT[u.o], 0.9);
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, T * 0.07, 0, 7); ctx.fill();
+        ctx.fillStyle = `rgba(${LIGHT[u.o].join(',')},0.95)`; ctx.font = `700 ${Math.max(10, T * 0.2)}px Comfortaa, sans-serif`; ctx.textAlign = 'center';
+        ctx.fillText(LETTER[u.t] + ' ' + u.hp, x, y - T * 0.24);
+      }
+      for (const f of flies) {
+        const tile = at(Math.floor((f.x - ox) / T), Math.floor((f.y - oy) / T));
+        if (!tile || tile.fog || !isLand(tile)) continue;
+        const a = 0.4 + 0.6 * Math.max(0, Math.sin(t * 2 * f.s + f.p));
+        const fx = f.x + Math.sin(t * 0.5 * f.s + f.p) * 12, fy = f.y + Math.cos(t * 0.4 * f.s + f.p * 2) * 10;
+        glow(ctx, fx, fy, 6, [220, 255, 150], a * 0.6);
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    const hud = () => `
+      <div class="top"><div class="nt-stat">ночь <b>7</b></div><div class="nt-stat">звёзды <b>12</b> <small>+4</small></div></div>
+      <div class="bottom" style="flex-direction:column;align-items:center"><div class="nt-hint">Тьма — неизведанное. Зажигай новые огни: займи деревню.</div>
+        <div class="nt-card"><div class="t">Арвен</div><div class="acts">${ACTS.map(([k, n, c]) => `<div class="nt-act"><i>${LETTER[k]}</i>${n}<b>★${c}</b></div>`).join('')}</div></div>
+        <button class="nt-next">Дальше</button></div>`;
+    return { id: 'night', name: 'Огни', about: 'Ночной мир: неизведанное — темнота, города светятся окнами, у юнитов фонари. Исследовать — значит зажигать свет.', draw, hud, reset() { lastKey = ''; } };
+  })();
+
+  // ======================================================================
+  // 7. Ризограф: печать в три краски, растр, сдвиг слоёв, круглые персонажи.
+  // ======================================================================
+  const RISO = (function () {
+    const PINK = '#ff48b0', BLUE = '#0078bf', YELLOW = '#ffe14a', PAPERC = '#f4f2ee';
+    let T = 40, ox = 0, oy = 0, lastKey = '', inks = null, grain = null;
+    function layout() { T = Math.min((vw - 30) / (W + 0.2), (vh - 290) / (H - 0.8)); ox = (vw - W * T) / 2; oy = (vh - H * T) / 2 + 8; }
+    function halftone(c, test, color, size, density) {
+      c.fillStyle = color;
+      for (let y = oy; y < oy + H * T; y += size) for (let x = ox + ((Math.round((y - oy) / size)) % 2 ? size / 2 : 0); x < ox + W * T; x += size) {
+        const tile = at(Math.floor((x - ox) / T), Math.floor((y - oy) / T));
+        if (!tile || !test(tile)) continue;
+        const d = density(tile, x, y);
+        if (d <= 0) continue;
+        c.beginPath(); c.arc(x, y, size * 0.5 * d, 0, 7); c.fill();
+      }
+    }
+    function build() {
+      layout();
+      const [y, cy] = layer(), [b, cb] = layer(), [p, cp] = layer();
+      cy.fillStyle = cy.strokeStyle = YELLOW; blobOn(cy, isLand, T * 0.56, T, ox, oy, 0.12);
+      // Море — синий растр, у берега плотнее.
+      const nearLand = (t) => N8.some(([dx, dy]) => isLand(at(t.x + dx, t.y + dy)));
+      halftone(cb, (t) => !isLand(t) && !t.fog, BLUE, 7, (t) => (t.t === 'water' ? 0.75 : nearLand(t) ? 0.55 : 0.4));
+      halftone(cb, (t) => t.t === 'forest' && !t.fog, BLUE, 6, (t, x, y) => 0.75 - Math.hypot(x - ox - (t.x + 0.5) * T, y - oy - (t.y + 0.5) * T) / T);
+      for (const t of all()) {
+        if (t.fog) continue;
+        const cx = ox + (t.x + 0.5) * T, ccy = oy + (t.y + 0.5) * T;
+        if (t.t === 'mountain') {
+          cb.fillStyle = BLUE; cb.beginPath(); cb.moveTo(cx - T * 0.42, ccy + T * 0.3); cb.lineTo(cx - T * 0.02, ccy - T * 0.38); cb.lineTo(cx + T * 0.4, ccy + T * 0.3); cb.fill();
+          cp.fillStyle = PINK; cp.beginPath(); cp.moveTo(cx - T * 0.02, ccy - T * 0.38); cp.lineTo(cx + T * 0.4, ccy + T * 0.3); cp.lineTo(cx + T * 0.06, ccy + T * 0.3); cp.fill();
+        }
+        if (t.res === 'fruit') { cp.fillStyle = PINK; cp.beginPath(); cp.arc(cx + T * 0.22, ccy + T * 0.2, T * 0.08, 0, 7); cp.fill(); }
+        if (t.res === 'fish') { cp.fillStyle = PINK; cp.beginPath(); cp.ellipse(cx, ccy, T * 0.12, T * 0.06, 0, 0, 7); cp.moveTo(cx - T * 0.1, ccy); cp.lineTo(cx - T * 0.2, ccy - T * 0.07); cp.lineTo(cx - T * 0.2, ccy + T * 0.07); cp.fill(); }
+        if (t.res === 'crop') { cp.fillStyle = PINK; for (let k = -1; k <= 1; k++) cp.fillRect(cx + T * 0.22 + k * 5, ccy + T * 0.12, 3, T * 0.22); }
+        if (t.res === 'ore') { cp.fillStyle = PINK; cp.beginPath(); cp.moveTo(cx + T * 0.3, ccy + T * 0.12); cp.lineTo(cx + T * 0.38, ccy + T * 0.26); cp.lineTo(cx + T * 0.3, ccy + T * 0.38); cp.lineTo(cx + T * 0.22, ccy + T * 0.26); cp.fill(); }
+      }
+      // Территории: своя — розовый растр, чужая — синяя обводка.
+      halftone(cp, (t) => t.owner === 0 && !t.fog, PINK, 6, () => 0.55);
+      cb.strokeStyle = BLUE; cb.lineWidth = 4; cb.setLineDash([2, 6]); cb.lineCap = 'round';
+      for (const t of all()) {
+        if (t.owner !== 1) continue;
+        const x = ox + t.x * T, y0 = oy + t.y * T;
+        cb.beginPath();
+        if (ownerEdge(t, 0, -1)) { cb.moveTo(x, y0); cb.lineTo(x + T, y0); }
+        if (ownerEdge(t, 0, 1)) { cb.moveTo(x, y0 + T); cb.lineTo(x + T, y0 + T); }
+        if (ownerEdge(t, -1, 0)) { cb.moveTo(x, y0); cb.lineTo(x, y0 + T); }
+        if (ownerEdge(t, 1, 0)) { cb.moveTo(x + T, y0); cb.lineTo(x + T, y0 + T); }
+        cb.stroke();
+      }
+      cb.setLineDash([]);
+      // Города: крупные плоские домики.
+      for (const c of CITIES) {
+        if (at(c.x, c.y).fog) continue;
+        const cx = ox + (c.x + 0.5) * T, ccy = oy + (c.y + 0.5) * T;
+        const k = c.owner === 1 ? cb : cp;
+        k.fillStyle = c.owner < 0 ? BLUE : c.owner === 1 ? BLUE : PINK;
+        const house = (hx, w, h) => { k.beginPath(); k.moveTo(hx - w / 2, ccy + T * 0.3); k.lineTo(hx - w / 2, ccy + T * 0.3 - h); k.lineTo(hx, ccy + T * 0.3 - h - w * 0.5); k.lineTo(hx + w / 2, ccy + T * 0.3 - h); k.lineTo(hx + w / 2, ccy + T * 0.3); k.fill(); };
+        if (c.owner < 0) house(cx, T * 0.3, T * 0.22);
+        else { house(cx - T * 0.18, T * 0.28, T * 0.3); house(cx + T * 0.16, T * 0.3, T * (c.cap ? 0.52 : 0.36)); }
+      }
+      inks = [{ cv: y, off: [0, 0] }, { cv: b, off: [1.5, -1] }, { cv: p, off: [-1.5, 1.5] }];
+      grain = document.createElement('canvas'); grain.width = 200; grain.height = 200;
+      const g = grain.getContext('2d'); const r = rng(6);
+      for (let k = 0; k < 3500; k++) { g.fillStyle = `rgba(244,242,238,${0.3 + r() * 0.6})`; g.fillRect(r() * 200, r() * 200, 1 + r(), 1 + r()); }
+    }
+    function bean(cx, cy, r, col, t, kind, hp, ph) {
+      const sq = 1 + Math.sin(t * 5 + ph) * 0.06;
+      ctx.save(); ctx.translate(cx, cy + r); ctx.scale(1 / sq, sq); ctx.translate(-cx, -(cy + r));
+      ctx.fillStyle = PAPERC; ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 1.05, 0, 0, 7); ctx.fill();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 1.05, 0, 0, 7); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = PAPERC;
+      const blink = Math.sin(t * 1.3 + ph * 3) > 0.97 ? 0.15 : 1;
+      for (const ex of [-0.32, 0.32]) { ctx.beginPath(); ctx.ellipse(cx + r * ex, cy - r * 0.15, r * 0.2, r * 0.24 * blink, 0, 0, 7); ctx.fill(); }
+      ctx.fillStyle = '#1b1b1f';
+      for (const ex of [-0.28, 0.36]) { ctx.beginPath(); ctx.arc(cx + r * ex, cy - r * 0.12, r * 0.09 * blink, 0, 7); ctx.fill(); }
+      ctx.restore();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = col === PINK ? BLUE : PINK;
+      ctx.font = `${Math.max(11, r * 0.75)}px "Dela Gothic One", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(LETTER[kind] + hp, cx, cy + r * 1.55);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    function draw(t) {
+      const key = vw + 'x' + vh + 'x' + dpr;
+      if (key !== lastKey) { lastKey = key; build(); }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = PAPERC; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'multiply';
+      const wob = Math.sin(t * 0.8) > 0.92 ? 1 : 0;
+      for (const ink of inks) ctx.drawImage(ink.cv, (ink.off[0] + wob * ink.off[1]) * dpr, ink.off[1] * dpr);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (const u of UNITS) {
+        const tile = at(u.x, u.y);
+        if (tile.fog) continue;
+        const off = tile.city ? T * 0.3 : 0;
+        bean(ox + (u.x + 0.5) * T + off, oy + (u.y + 0.5) * T + off - T * 0.08, T * 0.24, u.o ? BLUE : PINK, t, u.t, u.hp, u.x);
+      }
+      // Туман — пустая бумага с крупным растром.
+      ctx.fillStyle = PAPERC;
+      for (const tile of all()) if (tile.fog) ctx.fillRect(ox + tile.x * T, oy + tile.y * T, T + 0.5, T + 0.5);
+      ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = 'rgba(0,120,191,0.35)';
+      for (const tile of all()) {
+        if (!tile.fog) continue;
+        for (let yy = 4; yy < T; yy += 9) for (let xx = 4 + ((yy / 9) % 2) * 4.5; xx < T; xx += 9) { ctx.beginPath(); ctx.arc(ox + tile.x * T + xx, oy + tile.y * T + yy, 1.4, 0, 7); ctx.fill(); }
+      }
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = PINK; ctx.font = `${Math.max(16, T * 0.42)}px "Dela Gothic One", sans-serif`; ctx.textAlign = 'center';
+      ctx.save(); ctx.translate(ox + 11.6 * T, oy + 2.4 * T); ctx.rotate(-0.12); ctx.globalCompositeOperation = 'multiply'; ctx.fillText('ТУТ ЧТО-ТО ЕСТЬ?', 0, 0); ctx.restore();
+      for (const c of CITIES) {
+        if (c.owner < 0 || at(c.x, c.y).fog) continue;
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.fillStyle = c.owner ? BLUE : PINK; ctx.font = `${Math.max(12, T * 0.26)}px "Dela Gothic One", sans-serif`; ctx.textAlign = 'center';
+        ctx.fillText(c.name.toUpperCase(), ox + (c.x + 0.5) * T, oy + (c.y + 0.5) * T + T * 0.66);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = 0.5; ctx.fillStyle = ctx.createPattern(grain, 'repeat'); ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1;
+    }
+    const hud = () => `
+      <div class="top"><div class="rs-sticker">ХОД 7</div><div class="rs-sticker" style="--c:#0078bf;--r:3deg">★ 12</div></div>
+      <div class="bottom"><div class="rs-card"><div class="t">АРВЕН</div><div class="s">Твоя столица. Кого позовём?</div>
+        <div class="acts">${ACTS.map(([k, n, c]) => `<div class="rs-act"><i>${LETTER[k]}</i>${n}<b>★${c}</b></div>`).join('')}</div></div>
+        <button class="rs-next">ПОЕХАЛИ →</button></div>`;
+    return { id: 'riso', name: 'Ризограф', about: 'Печать в три краски: растр, сдвиг цветов, бумажное зерно. Юниты — круглые персонажи, которые моргают и пружинят.', draw, hud, reset() { lastKey = ''; } };
+  })();
+
+  // ======================================================================
+  // 8. Капли: чистая геометрия. Территории растекаются цветом, города — кружки.
+  // ======================================================================
+  const DROPS = (function () {
+    const COL = ['#ff5a36', '#3b5bff'];
+    let T = 40, ox = 0, oy = 0, lastKey = '', base = null, terr = null, terrC = null;
+    function layout() { T = Math.min((vw - 30) / (W + 0.2), (vh - 280) / (H - 0.8)); ox = (vw - W * T) / 2; oy = (vh - H * T) / 2 + 6; }
+    function build() {
+      layout();
+      let c;
+      [base, c] = layer();
+      c.fillStyle = '#e9edf2'; c.fillRect(0, 0, vw, vh);
+      const [lc, lx] = layer();
+      lx.fillStyle = lx.strokeStyle = '#ffffff'; blobOn(lx, isLand, T * 0.56, T, ox, oy);
+      c.save(); c.shadowColor = 'rgba(40,60,90,0.14)'; c.shadowBlur = 24; c.shadowOffsetY = 8;
+      c.drawImage(lc, 0, 0, vw, vh);
+      c.restore();
+      [terr, terrC] = layer();
+      for (const t of all()) {
+        const cx = ox + (t.x + 0.5) * T, cy = oy + (t.y + 0.5) * T;
+        if (t.t === 'forest') { c.fillStyle = '#9fd3a8'; for (const [a, b2] of [[-0.14, 0.04], [0.12, -0.08], [0.04, 0.16]]) { c.beginPath(); c.arc(cx + a * T, cy + b2 * T, T * 0.09, 0, 7); c.fill(); } }
+        if (t.t === 'mountain') { c.fillStyle = '#c3cad4'; c.beginPath(); c.moveTo(cx - T * 0.2, cy + T * 0.14); c.lineTo(cx, cy - T * 0.2); c.lineTo(cx + T * 0.2, cy + T * 0.14); c.fill(); }
+        if (t.res && !t.city) { c.fillStyle = { fruit: '#ff8a6b', crop: '#f2c94c', animal: '#c59a72', fish: '#7fb6ff', ore: '#7fd8e0' }[t.res]; c.beginPath(); c.arc(cx + T * 0.28, cy + T * 0.28, T * 0.05, 0, 7); c.fill(); }
+      }
+    }
+    function draw(t) {
+      const key = vw + 'x' + vh + 'x' + dpr;
+      if (key !== lastKey) { lastKey = key; build(); }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(base, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // Пятна территорий «дышат».
+      for (const o of [0, 1]) {
+        const br = 1 + Math.sin(t * 1.4 + o) * 0.04;
+        terrC.setTransform(1, 0, 0, 1, 0, 0); terrC.clearRect(0, 0, terr.width, terr.height); terrC.setTransform(dpr, 0, 0, dpr, 0, 0);
+        terrC.fillStyle = terrC.strokeStyle = COL[o];
+        blobOn(terrC, (tt) => tt.owner === o && !tt.fog, T * 0.6 * br, T, ox, oy);
+        ctx.save(); ctx.globalAlpha = 0.2; ctx.drawImage(terr, 0, 0, vw, vh); ctx.restore();
+      }
+      // Подсказка ходов выбранного всадника.
+      const sel = UNITS[1];
+      const sx = ox + (sel.x + 0.5) * T, sy = oy + (sel.y + 0.5) * T;
+      for (const [dx, dy] of [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [0, 1], [1, 1], [-2, 0], [2, 0], [0, -2], [-1, 1]]) {
+        const n = at(sel.x + dx, sel.y + dy);
+        if (!n || !isLand(n) || n.unit) continue;
+        ctx.fillStyle = 'rgba(255,90,54,0.35)'; ctx.beginPath(); ctx.arc(ox + (n.x + 0.5) * T, oy + (n.y + 0.5) * T, T * (0.07 + 0.015 * Math.sin(t * 4 + dx)), 0, 7); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(255,90,54,0.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx, sy, T * (0.3 + 0.02 * Math.sin(t * 5)), 0, 7); ctx.stroke();
+      for (const c of CITIES) {
+        if (at(c.x, c.y).fog) continue;
+        const cx = ox + (c.x + 0.5) * T, cy = oy + (c.y + 0.5) * T;
+        if (c.owner < 0) { ctx.strokeStyle = '#aab3bf'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(cx, cy, T * 0.18, 0, 7); ctx.stroke(); continue; }
+        ctx.fillStyle = COL[c.owner]; ctx.beginPath(); ctx.arc(cx, cy, T * 0.3, 0, 7); ctx.fill();
+        if (c.cap) { ctx.strokeStyle = COL[c.owner]; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, T * 0.38, 0, 7); ctx.stroke(); }
+        ctx.fillStyle = '#fff'; ctx.font = `800 ${T * 0.3}px Manrope, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(c.level, cx, cy + 1);
+        ctx.fillStyle = '#3b4552'; ctx.font = `700 ${Math.max(11, T * 0.2)}px Manrope, sans-serif`;
+        ctx.fillText(c.name, cx, cy + T * 0.58);
+      }
+      for (const u of UNITS) {
+        const tile = at(u.x, u.y);
+        if (tile.fog) continue;
+        const off = tile.city ? T * 0.32 : 0;
+        const x = ox + (u.x + 0.5) * T + off, y = oy + (u.y + 0.5) * T + off;
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, T * 0.2, 0, 7); ctx.fill();
+        ctx.fillStyle = COL[u.o]; ctx.beginPath(); ctx.arc(x, y, T * 0.16, 0, 7); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = `800 ${T * 0.16}px Manrope, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(LETTER[u.t], x, y + 0.5);
+        // Здоровье — дуга вокруг фишки.
+        const max = u.t === 'defender' ? 15 : 10;
+        ctx.strokeStyle = COL[u.o]; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, T * 0.24, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * u.hp / max); ctx.stroke();
+      }
+      // Туман — мягкая белая дымка.
+      for (const tile of all()) {
+        if (!tile.fog) continue;
+        const cx = ox + (tile.x + 0.5) * T, cy = oy + (tile.y + 0.5) * T;
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, T * 0.95);
+        g.addColorStop(0, 'rgba(233,237,242,1)'); g.addColorStop(0.6, 'rgba(233,237,242,0.95)'); g.addColorStop(1, 'rgba(233,237,242,0)');
+        ctx.fillStyle = g; ctx.fillRect(cx - T, cy - T, T * 2, T * 2);
+      }
+    }
+    const hud = () => `
+      <div class="top"><div class="dr-stat"><b>7</b>ход</div><div class="dr-stat"><b style="color:#f2a91c">12</b>звёзд</div></div>
+      <div class="bottom" style="flex-direction:column;align-items:center"><div class="dr-hint">Всадник выбран — точки показывают, куда он может пойти</div>
+        <div class="dr-card"><div class="acts">${ACTS.map(([k, n, c]) => `<div class="dr-act"><i>${LETTER[k]}</i>${n}<b>${c}</b></div>`).join('')}</div><button class="dr-next">Ход</button></div></div>`;
+    return { id: 'drops', name: 'Капли', about: 'Чистая геометрия, как в казуальной головоломке: белые острова, цветные пятна территорий, города — кружки с уровнем.', draw, hud, reset() { lastKey = ''; } };
+  })();
+
   // ---------- Переключатель ----------
-  const STYLES = [MAPS, INK, PAPER, BOARD];
+  const STYLES = [NOTE, NIGHT, RISO, DROPS, MAPS, INK, PAPER, BOARD];
+  const FRESH = 4; // первые четыре — новая подборка, остальные — прошлая
   let cur = STYLES[0];
   const sw = document.getElementById('switch');
   function select(st) {
@@ -915,7 +1449,7 @@ body[data-style="board"] .hud { font-family: Rubik, system-ui, sans-serif; }
     t0 = performance.now();
     try { localStorage.setItem('isles-style', st.id); } catch (e) { /* без запоминания */ }
   }
-  sw.innerHTML = STYLES.map((st) => `<button role="tab" data-id="${st.id}">${st.name}</button>`).join('');
+  sw.innerHTML = STYLES.map((st, i) => (i === FRESH ? '<span class="sep">раньше:</span>' : '') + `<button role="tab" data-id="${st.id}" class="${i >= FRESH ? 'old' : ''}">${st.name}</button>`).join('');
   sw.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => select(STYLES.find((st) => st.id === b.dataset.id))));
 
   function resize() {
