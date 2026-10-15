@@ -1,0 +1,172 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Острова Племён</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap">
+<style>
+/* Layout: мир на весь экран. Сверху три числа без подложки, снизу тёмная полоса с выбранным объектом,
+   по углам — технологии и следующий ход. Минимум рамок, всё через цвет и вес шрифта. */
+:root {
+  --bar: rgba(16, 24, 32, 0.78);
+  --chip: rgba(255, 255, 255, 0.12);
+  --chip-on: rgba(255, 255, 255, 0.92);
+  --fg: #ffffff;
+  --muted: rgba(255, 255, 255, 0.66);
+  --star: #ffd447;
+  --go: #3fb4f0;
+  --danger: #ff5a4f;
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; }
+[hidden] { display: none !important; }
+body { background: #3e9fcb; color: var(--fg); font: 800 15px/1.3 var(--font); -webkit-tap-highlight-color: transparent; user-select: none; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
+button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; border-radius: 12px; }
+#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.shadow-text { text-shadow: 0 1px 2px rgba(0,0,0,.35), 0 0 8px rgba(0,0,0,.18); }
+svg { display: block; }
+
+/* ---------- HUD ---------- */
+.hud { position: fixed; inset: 0; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.top {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  display: flex; gap: clamp(18px, 5vw, 44px); text-align: center; pointer-events: none;
+}
+.stat .k { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font-size: 24px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat .v small { font-size: 14px; color: var(--muted); }
+.stat.stars .v { color: var(--star); }
+.corner { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--bar); }
+.corner.left { left: max(16px, env(safe-area-inset-left, 0px)); }
+.toast {
+  position: absolute; left: 50%; top: calc(74px + env(safe-area-inset-top, 0px)); transform: translateX(-50%);
+  font-size: 17px; font-weight: 900; pointer-events: none; transition: opacity .3s; white-space: nowrap;
+}
+
+.dock {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: end;
+  background: linear-gradient(to top, rgba(12, 20, 28, .72), rgba(12, 20, 28, .45) 70%, rgba(12, 20, 28, 0));
+}
+.info { display: grid; gap: 6px; min-width: 0; }
+.info .title { font-size: 19px; font-weight: 900; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info .title i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.info .sub { color: var(--muted); font-size: 13px; font-weight: 800; }
+.info .sub b { color: var(--fg); }
+.acts { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-top: 4px; }
+.acts::-webkit-scrollbar { display: none; }
+.act { flex: none; width: 64px; display: grid; justify-items: center; gap: 3px; }
+.act .ic { width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,.14); display: grid; place-items: center; overflow: hidden; transition: transform .12s, background .12s; }
+.act .ic img { width: 120%; height: 120%; object-fit: contain; }
+.act:hover:not(:disabled) .ic { transform: translateY(-2px); background: rgba(255,255,255,.24); }
+.act .n { font-size: 11px; text-align: center; line-height: 1.1; }
+.act .c { font-size: 12px; color: var(--star); font-weight: 900; }
+.act:disabled { cursor: not-allowed; }
+.act:disabled .ic { opacity: .4; filter: grayscale(.8); }
+.act:disabled .n, .act:disabled .c { opacity: .45; }
+.round { width: 56px; height: 56px; border-radius: 50%; background: var(--bar); display: grid; place-items: center; }
+.next { height: 56px; padding: 0 22px; border-radius: 28px; background: var(--go); font-size: 17px; font-weight: 900; white-space: nowrap; box-shadow: inset 0 -4px 0 rgba(0,0,0,.15); }
+.next:disabled { background: rgba(255,255,255,.18); cursor: wait; }
+@media (max-width: 640px) {
+  .dock { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "info info" "tech next"; }
+  .dock .info { grid-area: info; }
+  .dock #btnTech { grid-area: tech; }
+  .dock .next { grid-area: next; }
+  .stat .v { font-size: 20px; }
+}
+
+/* ---------- Меню и листы ---------- */
+.overlay { position: fixed; inset: 0; display: grid; place-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.overlay.dim { background: rgba(10, 20, 30, .45); }
+.sheet { width: min(520px, 100%); max-height: 100%; overflow: auto; display: grid; gap: 14px; scrollbar-width: none; }
+.sheet.panel { background: rgba(16, 24, 32, 0.93); border-radius: 24px; padding: 22px; }
+/* Главное меню и итог: заголовок сверху, кнопки снизу, остров виден посередине. */
+.overlay.stage { place-items: stretch; justify-items: center; background: linear-gradient(to top, rgba(12,20,28,.55), rgba(12,20,28,0) 40%); }
+.sheet.stage { height: 100%; width: min(420px, 100%); grid-template-rows: auto 1fr auto; padding-block: 8px; overflow: visible; }
+.logo { font-size: clamp(40px, 9vw, 68px); font-weight: 900; line-height: .95; letter-spacing: -.02em; text-align: center; text-wrap: balance; }
+.tag { text-align: center; color: rgba(255,255,255,.85); font-size: 16px; }
+h2 { margin: 0; font-size: 26px; font-weight: 900; text-wrap: balance; }
+.sheet p { margin: 0; color: var(--muted); font-weight: 700; }
+.label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.menu-list { display: grid; gap: 10px; }
+.pill { height: 52px; border-radius: 26px; background: var(--bar); font-size: 18px; font-weight: 900; }
+.pill.primary { background: var(--go); box-shadow: inset 0 -4px 0 rgba(0,0,0,.15); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { height: 40px; padding: 0 16px; border-radius: 20px; background: var(--chip); display: inline-flex; align-items: center; gap: 8px; font-weight: 900; }
+.chip i { width: 12px; height: 12px; border-radius: 50%; }
+.chip.on { background: var(--chip-on); color: #17222c; }
+.chip small { font-weight: 800; opacity: .7; }
+.rules { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--muted); font-size: 14px; font-weight: 700; }
+.rules b { color: var(--fg); }
+
+/* Экран миров */
+.worlds { position: fixed; inset: 0; pointer-events: none; display: grid; grid-template-rows: auto 1fr auto; }
+.worlds > * { pointer-events: auto; }
+.worlds .head { text-align: center; padding: calc(22px + env(safe-area-inset-top, 0px)) 16px 0; }
+.worlds .head .name { font-size: clamp(34px, 7vw, 54px); font-weight: 900; line-height: 1; }
+.worlds .head .desc { color: rgba(255,255,255,.9); margin-top: 6px; }
+.worlds .foot { padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 12px; justify-items: center;
+  background: linear-gradient(to top, rgba(12, 20, 28, .6), rgba(12, 20, 28, 0)); }
+.worlds .chips { justify-content: center; }
+.worlds .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.worlds .row .pill { padding: 0 24px; }
+
+.tree { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .tree { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.branch { display: grid; gap: 8px; align-content: start; }
+.tech { border-radius: 16px; padding: 10px; background: var(--chip); text-align: left; display: grid; gap: 2px; }
+.tech .n { font-weight: 900; font-size: 14px; }
+.tech .g { font-size: 12px; color: var(--muted); }
+.tech .c { font-size: 13px; color: var(--star); font-weight: 900; }
+.tech.owned { background: rgba(63, 180, 240, .35); }
+.tech.owned .c { color: #fff; }
+.tech.can { box-shadow: inset 0 0 0 2px var(--star); }
+.tech:disabled:not(.owned) { opacity: .4; cursor: not-allowed; }
+.tech.owned { cursor: default; }
+.rewards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.reward { border-radius: 18px; padding: 14px; background: var(--chip); text-align: left; display: grid; gap: 4px; }
+.reward:hover { background: rgba(255,255,255,.22); }
+.reward b { font-size: 18px; font-weight: 900; }
+.reward span { color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<canvas id="world"></canvas>
+
+<div class="hud" id="hud" hidden>
+  <button class="corner left" id="btnMenu" aria-label="Меню"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h14" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  <div class="top shadow-text">
+    <div class="stat"><div class="k">Очки</div><div class="v" id="hScore">0</div></div>
+    <div class="stat"><div class="k">Ход</div><div class="v" id="hTurn">1</div></div>
+    <div class="stat stars"><div class="k">Звёзды</div><div class="v" id="hStars">5 <small>+2</small></div></div>
+  </div>
+  <div class="toast shadow-text" id="toast" style="opacity:0"></div>
+  <div class="dock">
+    <button class="round" id="btnTech" aria-label="Технологии"><svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="5" r="3" fill="#fff"/><circle cx="5" cy="20" r="3" fill="#fff"/><circle cx="21" cy="20" r="3" fill="#fff"/><path d="M13 8v5M13 13L6 18M13 13l7 5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg></button>
+    <div class="info" id="info"></div>
+    <button class="next" id="btnNext">Следующий ход</button>
+  </div>
+</div>
+
+<div class="worlds" id="worlds" hidden>
+  <div class="head shadow-text"><div class="name" id="wName"></div><div class="desc" id="wDesc"></div></div>
+  <div></div>
+  <div class="foot">
+    <div class="chips" id="wChips"></div>
+    <div class="row"><button class="pill" id="wBack">Назад</button><button class="pill primary" id="wPlay">Играть в этом мире</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="logic.js" charset="utf-8"></script>
+<script src="view.js" charset="utf-8"></script>
+<script src="app.js" charset="utf-8"></script>

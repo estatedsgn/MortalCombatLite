@@ -1,0 +1,574 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Острова: Штаб</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: стол с картой на весь экран, сверху — сводка хода, снизу — карточка объекта и кнопка хода,
+   у курсора — подсказка по клетке. Всё в духе штабных документов: моно-шрифт, тонкие рамки. */
+:root {
+  --paper: #e6e9df;
+  --paper-2: #eef0e2;
+  --ink: #26302a;
+  --muted: #5b665e;
+  --blue: #2457d6;
+  --red: #cf3427;
+  --table: #2d322c;
+  --font: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; }
+[hidden] { display: none !important; }
+body { background: var(--table); color: var(--ink); font: 500 14px/1.35 var(--font); -webkit-tap-highlight-color: transparent; user-select: none; }
+button { font: inherit; color: inherit; border: 0; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.hud { position: fixed; inset: 0; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.strip {
+  position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; max-width: calc(100% - 32px);
+  background: var(--paper); border: 1.5px solid var(--ink); padding: 7px 14px; font-size: 13px;
+  box-shadow: 4px 4px 0 rgba(0,0,0,.25);
+}
+.strip b { font-weight: 600; font-size: 16px; }
+.strip .time { color: var(--red); }
+.card {
+  position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  width: min(440px, calc(100% - 32px)); background: var(--paper-2); border: 1.5px solid var(--ink); padding: 10px 12px;
+  display: grid; gap: 6px; box-shadow: 4px 4px 0 rgba(0,0,0,.25);
+}
+.card .t { font-weight: 600; font-size: 15px; letter-spacing: .04em; }
+.card .s { font-size: 12px; color: var(--muted); }
+.acts { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.act { display: grid; justify-items: center; gap: 3px; width: 82px; flex: none; font-size: 10px; font-weight: 600; background: none; }
+.act b { color: var(--blue); }
+.act canvas { width: 44px; height: 30px; }
+.next {
+  position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--paper); font-weight: 600; font-size: 14px; padding: 14px 16px; letter-spacing: .04em;
+  box-shadow: 4px 4px 0 rgba(0,0,0,.25);
+}
+.tip {
+  position: fixed; pointer-events: none; background: var(--paper); border: 1.5px solid var(--ink); padding: 6px 9px;
+  font-size: 12px; white-space: nowrap; box-shadow: 3px 3px 0 rgba(0,0,0,.25); z-index: 3; transform: translate(14px, 14px);
+}
+.tip b { font-weight: 600; font-size: 14px; }
+.tip .d { color: var(--muted); }
+@media (max-width: 640px) {
+  .card { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); padding: 8px 10px; }
+  .card .s { font-size: 11px; }
+  .act { width: 70px; }
+  .next { left: max(16px, env(safe-area-inset-left, 0px)); text-align: center; }
+  .strip { gap: 10px; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<canvas id="c"></canvas>
+<div class="hud">
+  <div class="strip"><span>ХОД <b>07</b></span><span>ЗВЁЗДЫ <b>12</b> (+4)</span><span>ОЧКИ <b>1840</b></span><span class="time">Д+7 / 06:00</span></div>
+  <div class="card" id="card"></div>
+  <button class="next" id="next">ЗАВЕРШИТЬ ХОД ⏎</button>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Шрифт нужен до того, как рисуются текстуры клеток; без сети ждём не дольше секунды.
+Promise.race([document.fonts.load('600 16px "IBM Plex Mono"'), new Promise((r) => setTimeout(r, 1000))]).catch(() => {}).then(function () {
+  'use strict';
+  // ---------- Карта (та же, что в концептах) ----------
+  const ART = [
+    '..............',
+    '....fFF.......',
+    '...fFfFmf.....',
+    '..ffCffMff~...',
+    '..fFfffff.fv..',
+    '...ffvfFff.ff.',
+    '....fffFfFfFf.',
+    '.....ffmMfCff.',
+    '......fffFff..',
+    '.......fff....',
+    '..............',
+  ];
+  const W = ART[0].length, H = ART.length;
+  const LET = 'АБВГДЕЖЗИКЛМНО';
+  const coord = (x, y) => LET[x] + (y + 1);
+  function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  const R = rng(17);
+  const LAND = new Set(['field', 'forest', 'mountain']);
+  const N8 = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
+  const tiles = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const ch = ART[y][x];
+    const t = { x, y, t: 'deep', res: null, owner: -1, fog: false, city: null, unit: null };
+    if (ch === '~') t.t = 'water';
+    if ('fCv'.includes(ch)) t.t = 'field';
+    if (ch === 'F') t.t = 'forest';
+    if ('mM'.includes(ch)) t.t = 'mountain';
+    if (ch === 'M') t.res = 'ore';
+    tiles.push(t);
+  }
+  const at = (x, y) => (x >= 0 && y >= 0 && x < W && y < H ? tiles[y * W + x] : null);
+  const isLand = (t) => t && LAND.has(t.t);
+  for (const t of tiles) {
+    if (t.t === 'deep' && N8.some(([dx, dy]) => isLand(at(t.x + dx, t.y + dy)))) t.t = 'water';
+    const q = R();
+    if (!t.res) {
+      if (t.t === 'field') t.res = q < 0.16 ? 'fruit' : q < 0.28 ? 'crop' : null;
+      if (t.t === 'forest') t.res = q < 0.3 ? 'animal' : null;
+      if (t.t === 'water') t.res = q < 0.22 ? 'fish' : null;
+    }
+  }
+  const CITIES = [
+    { x: 4, y: 3, owner: 0, cap: true, name: 'Арвен', level: 3 },
+    { x: 10, y: 7, owner: 1, cap: true, name: 'Кордо', level: 2 },
+    { x: 5, y: 5, owner: -1 },
+    { x: 11, y: 4, owner: -1 },
+  ];
+  for (const c of CITIES) {
+    const t = at(c.x, c.y); t.city = c; t.res = null;
+    if (c.owner >= 0) for (const [dx, dy] of [[0, 0]].concat(N8)) { const n = at(c.x + dx, c.y + dy); if (n) n.owner = c.owner; }
+  }
+  const UNITS = [
+    { id: 1, x: 5, y: 3, o: 0, t: 'warrior', hp: 10 },
+    { id: 2, x: 6, y: 5, o: 0, t: 'rider', hp: 8 },
+    { id: 3, x: 3, y: 4, o: 0, t: 'archer', hp: 10 },
+    { id: 4, x: 9, y: 6, o: 1, t: 'warrior', hp: 6 },
+    { id: 5, x: 10, y: 7, o: 1, t: 'defender', hp: 15 },
+  ];
+  for (const u of UNITS) { at(u.x, u.y).unit = u; at(u.x, u.y).res = null; }
+  for (const t of tiles) if ((t.x >= 9 && t.y <= 4) || (t.x >= 12 && t.y <= 6)) t.fog = true;
+
+  const TERRAIN = {
+    deep: { name: 'Море', h: 0.04, top: '#b9d2de', side: '#8fb0c2', note: 'непроходимо' },
+    water: { name: 'Мелководье', h: 0.12, top: '#cfe2ea', side: '#a5c4d3', note: 'непроходимо без кораблей' },
+    field: { name: 'Поле', h: 0.32, top: '#eef0e2', side: '#c9ccb8', note: 'ход 1' },
+    forest: { name: 'Лес', h: 0.44, top: '#d6e6c2', side: '#a9bf93', note: 'защита +50%, останавливает движение' },
+    mountain: { name: 'Горы', h: 0.78, top: '#ecdfc6', side: '#c4ad86', note: 'защита +50%, обзор 2' },
+  };
+  const RES_NAME = { fruit: 'фрукты', crop: 'зерно', animal: 'дичь', fish: 'рыба', ore: 'руда' };
+  const RES_TAG = { fruit: 'ФР', crop: 'ЗЕРН', animal: 'ДИЧЬ', fish: 'РЫБА', ore: 'РУДА' };
+  const UNIT_INFO = {
+    warrior: { name: 'Воин', move: 1, range: 1 },
+    rider: { name: 'Всадник', move: 2, range: 1 },
+    archer: { name: 'Лучник', move: 1, range: 2 },
+    defender: { name: 'Защитник', move: 1, range: 1 },
+  };
+  const SIDE = [{ line: '#2457d6', fill: '#9fc3ff' }, { line: '#cf3427', fill: '#ffaaa0' }];
+  const INK = '#26302a';
+  const FONT = '"IBM Plex Mono", ui-monospace, monospace';
+
+  // ---------- Текстуры клеток: у каждой свой рисунок местности и свой адрес ----------
+  const TEX = 128;
+  function cellCanvas(t) {
+    const cv = document.createElement('canvas'); cv.width = cv.height = TEX;
+    const c = cv.getContext('2d');
+    const T = TERRAIN[t.t];
+    const r = rng(t.x * 31 + t.y * 17 + 5);
+    c.fillStyle = T.top; c.fillRect(0, 0, TEX, TEX);
+    if (t.fog) {
+      c.fillStyle = '#e6e9df'; c.fillRect(0, 0, TEX, TEX);
+      c.strokeStyle = 'rgba(38,48,42,0.32)'; c.lineWidth = 1.6;
+      for (let k = -TEX; k < TEX * 2; k += 10) { c.beginPath(); c.moveTo(k, 0); c.lineTo(k - TEX, TEX); c.stroke(); }
+    } else if (t.t === 'deep' || t.t === 'water') {
+      c.strokeStyle = t.t === 'water' ? 'rgba(40,90,140,0.32)' : 'rgba(40,90,140,0.2)'; c.lineWidth = 1.4;
+      for (let y = 6; y < TEX; y += t.t === 'water' ? 7 : 10) { c.beginPath(); c.moveTo(0, y); c.lineTo(TEX, y); c.stroke(); }
+      if (t.t === 'water') {
+        // Изобата со стороны суши.
+        c.strokeStyle = 'rgba(40,90,140,0.6)'; c.lineWidth = 2;
+        for (const [dx, dy, x1, y1, x2, y2] of [[0, -1, 0, 10, TEX, 10], [0, 1, 0, TEX - 10, TEX, TEX - 10], [-1, 0, 10, 0, 10, TEX], [1, 0, TEX - 10, 0, TEX - 10, TEX]]) {
+          if (isLand(at(t.x + dx, t.y + dy))) { c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); }
+        }
+      }
+    } else if (t.t === 'field') {
+      c.fillStyle = 'rgba(110,120,80,0.35)';
+      for (let k = 0; k < 26; k++) { c.beginPath(); c.arc(10 + r() * (TEX - 20), 24 + r() * (TEX - 34), 1.6, 0, 7); c.fill(); }
+    } else if (t.t === 'forest') {
+      c.strokeStyle = 'rgba(55,105,45,0.85)'; c.fillStyle = 'rgba(160,200,130,0.6)'; c.lineWidth = 2;
+      for (let gy = 0; gy < 3; gy++) for (let gx = 0; gx < 3; gx++) {
+        const px = 26 + gx * 38 + (gy % 2) * 10 + (r() - 0.5) * 8, py = 34 + gy * 32 + (r() - 0.5) * 8;
+        c.beginPath(); c.arc(px, py, 8, 0, 7); c.fill(); c.stroke();
+      }
+    } else if (t.t === 'mountain') {
+      c.strokeStyle = 'rgba(150,100,55,0.85)'; c.lineWidth = 2;
+      for (let k = 0; k < 4; k++) { const rr = 50 - k * 12; c.beginPath(); c.ellipse(TEX / 2, TEX / 2 + 6, rr, rr * 0.8, 0.3, 0, 7); c.stroke(); }
+      c.fillStyle = INK; c.beginPath(); c.moveTo(TEX / 2, TEX / 2 - 4); c.lineTo(TEX / 2 + 7, TEX / 2 + 8); c.lineTo(TEX / 2 - 7, TEX / 2 + 8); c.fill();
+      c.font = `600 15px ${FONT}`; c.textAlign = 'left'; c.fillText(String(300 + ((t.x * 37 + t.y * 53) % 290)), TEX / 2 + 10, TEX / 2 + 8);
+    }
+    // Территория: цветная кромка и лёгкая заливка.
+    if (t.owner >= 0 && !t.fog) {
+      c.fillStyle = t.owner ? 'rgba(207,52,39,0.1)' : 'rgba(36,87,214,0.1)'; c.fillRect(0, 0, TEX, TEX);
+      c.strokeStyle = SIDE[t.owner].line; c.lineWidth = 5; c.setLineDash([12, 6]);
+      c.strokeRect(5, 5, TEX - 10, TEX - 10); c.setLineDash([]);
+    }
+    if (t.res && !t.fog) {
+      c.font = `600 15px ${FONT}`; c.textAlign = 'right'; c.textBaseline = 'bottom';
+      const tag = RES_TAG[t.res];
+      const w = c.measureText(tag).width + 8;
+      c.fillStyle = 'rgba(238,240,226,0.9)'; c.fillRect(TEX - 10 - w, TEX - 30, w, 20);
+      c.strokeStyle = INK; c.lineWidth = 1.2; c.strokeRect(TEX - 10 - w, TEX - 30, w, 20);
+      c.fillStyle = INK; c.fillText(tag, TEX - 14, TEX - 12);
+    }
+    // Адрес клетки — в левом верхнем углу, как на шахматной доске.
+    c.font = `600 17px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top';
+    c.fillStyle = t.t === 'deep' || t.t === 'water' ? 'rgba(30,70,110,0.55)' : 'rgba(38,48,42,0.6)';
+    c.fillText(coord(t.x, t.y), 10, 9);
+    return cv;
+  }
+
+  // Тактический знак: свои — прямоугольник, враг — ромб; внутри род войск, снизу — сила.
+  function symbolCanvas(side, kind, hp, scale) {
+    const s = scale || 1;
+    const cv = document.createElement('canvas'); cv.width = 128 * s; cv.height = 128 * s;
+    const c = cv.getContext('2d'); c.scale(s, s);
+    const cx = 64, cy = 54, w = 92, h = 62;
+    c.lineWidth = 4; c.strokeStyle = INK; c.fillStyle = SIDE[side].fill;
+    c.beginPath();
+    if (side === 0) c.rect(cx - w / 2, cy - h / 2, w, h);
+    else { const d = 46; c.moveTo(cx, cy - d); c.lineTo(cx + d, cy); c.lineTo(cx, cy + d); c.lineTo(cx - d, cy); c.closePath(); }
+    c.fill(); c.stroke();
+    const iw = side === 0 ? w / 2 : 22, ih = side === 0 ? h / 2 : 22;
+    c.beginPath(); c.lineWidth = 3.5;
+    if (kind === 'warrior') { c.moveTo(cx - iw, cy - ih); c.lineTo(cx + iw, cy + ih); c.moveTo(cx + iw, cy - ih); c.lineTo(cx - iw, cy + ih); }
+    if (kind === 'rider') { c.moveTo(cx - iw, cy + ih); c.lineTo(cx + iw, cy - ih); }
+    if (kind === 'archer') { c.arc(cx, cy, 9, 0, 7); c.fillStyle = INK; c.fill(); }
+    if (kind === 'defender') c.ellipse(cx, cy, iw * 0.6, ih * 0.5, 0, 0, 7);
+    c.stroke();
+    if (hp != null) {
+      c.fillStyle = INK; c.font = `600 22px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'top';
+      c.fillText('••  ' + hp, cx, 104);
+    }
+    return cv;
+  }
+
+  // ---------- Сцена ----------
+  const canvas = document.getElementById('c');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#2d322c');
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 200);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x7a8070, 0.7));
+  const sun = new THREE.DirectionalLight(0xfff6e8, 0.55);
+  sun.position.set(-6, 14, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -11, right: 11, top: 9, bottom: -9, near: 1, far: 40 });
+  sun.shadow.bias = -0.0005;
+  scene.add(sun);
+  const wx = (x) => x - W / 2 + 0.5, wz = (y) => y - H / 2 + 0.5;
+
+  // Лист карты с полями и координатами по краям.
+  (function sheet() {
+    const PX = 64, M = 1.4;
+    const cv = document.createElement('canvas'); cv.width = (W + M * 2) * PX; cv.height = (H + M * 2) * PX;
+    const c = cv.getContext('2d');
+    c.fillStyle = '#e6e9df'; c.fillRect(0, 0, cv.width, cv.height);
+    const r = rng(2);
+    for (let k = 0; k < 6000; k++) { c.fillStyle = `rgba(60,60,40,${0.02 + r() * 0.04})`; c.fillRect(r() * cv.width, r() * cv.height, 2, 2); }
+    c.strokeStyle = INK; c.lineWidth = 3; c.strokeRect(M * PX - 8, M * PX - 8, W * PX + 16, H * PX + 16);
+    c.lineWidth = 1; c.strokeRect(M * PX - 18, M * PX - 18, W * PX + 36, H * PX + 36);
+    c.fillStyle = INK; c.font = `600 26px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let x = 0; x < W; x++) { c.fillText(LET[x], (M + x + 0.5) * PX, M * PX - 40); c.fillText(LET[x], (M + x + 0.5) * PX, (M + H) * PX + 40); }
+    for (let y = 0; y < H; y++) { c.fillText(String(y + 1), M * PX - 44, (M + y + 0.5) * PX); c.fillText(String(y + 1), (M + W) * PX + 44, (M + y + 0.5) * PX); }
+    c.font = `600 22px ${FONT}`; c.textAlign = 'left';
+    c.fillText('ОСТРОВА ПЛЕМЁН · ЛИСТ 07-Д · МАСШТАБ 1:50 000', M * PX - 18, (M + H) * PX + 80);
+    c.textAlign = 'right'; c.fillStyle = '#cf3427';
+    c.fillText('СЕКРЕТНО', (M + W) * PX + 18, M * PX - 80);
+    const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 8;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(W + M * 2, H + M * 2), new THREE.MeshLambertMaterial({ map: tex }));
+    m.rotation.x = -Math.PI / 2; m.position.y = -0.001; m.receiveShadow = true;
+    scene.add(m);
+    const table = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshLambertMaterial({ color: '#3a4037' }));
+    table.rotation.x = -Math.PI / 2; table.position.y = -0.02; table.receiveShadow = true;
+    scene.add(table);
+  })();
+
+  // Клетки — отдельные тайлы со швами; высота зависит от местности.
+  const GAP = 0.035;
+  const cellMeshes = [];
+  for (const t of tiles) {
+    const T = TERRAIN[t.t];
+    const h = t.fog ? 0.5 : T.h;
+    const tex = new THREE.CanvasTexture(cellCanvas(t)); tex.anisotropy = 8;
+    const side = new THREE.MeshLambertMaterial({ color: t.fog ? '#c9ccc0' : T.side });
+    const top = new THREE.MeshLambertMaterial({ map: tex });
+    const m = new THREE.Mesh(new THREE.BoxGeometry(1 - GAP, h, 1 - GAP), [side, side, top, side, side, side]);
+    m.position.set(wx(t.x), h / 2, wz(t.y));
+    m.castShadow = true; m.receiveShadow = true;
+    m.userData.tile = t;
+    t.top = h; t.mesh = m;
+    scene.add(m);
+    cellMeshes.push(m);
+  }
+  // Подпись над неразведанной зоной.
+  function textSprite(text, color, size, bg) {
+    const cv = document.createElement('canvas');
+    const c = cv.getContext('2d');
+    c.font = `600 ${size}px ${FONT}`;
+    const w = Math.ceil(c.measureText(text).width) + 24;
+    cv.width = w; cv.height = size + 16;
+    c.font = `600 ${size}px ${FONT}`;
+    if (bg) { c.fillStyle = bg; c.fillRect(0, 0, w, cv.height); c.strokeStyle = INK; c.lineWidth = 3; c.strokeRect(1.5, 1.5, w - 3, cv.height - 3); }
+    c.fillStyle = color; c.textBaseline = 'middle'; c.textAlign = 'center';
+    c.fillText(text, w / 2, cv.height / 2 + 1);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), depthTest: false }));
+    sp.scale.set(w / 110, cv.height / 110, 1);
+    sp.renderOrder = 20;
+    return sp;
+  }
+  const fogLabel = textSprite('НЕ РАЗВЕДАНО', INK, 30, '#e6e9df');
+  fogLabel.position.set(wx(11), 1.0, wz(2));
+  scene.add(fogLabel);
+
+  // Города: ступенчатый блок цвета стороны, флажок у столицы.
+  for (const c of CITIES) {
+    const t = at(c.x, c.y);
+    if (t.fog) continue;
+    const g = new THREE.Group();
+    g.position.set(wx(c.x), t.top, wz(c.y));
+    if (c.owner < 0) {
+      const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.1, 20), new THREE.MeshLambertMaterial({ color: '#e6e9df' }));
+      ring.position.y = 0.05; ring.castShadow = true; g.add(ring);
+      const inner = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.104, 20), new THREE.MeshLambertMaterial({ color: INK }));
+      inner.position.y = 0.05; g.add(inner);
+      const lab = textSprite('ДЕР.', INK, 26, 'rgba(230,233,223,0.92)');
+      lab.position.set(0, 0.35, 0.32); g.add(lab);
+    } else {
+      const col = SIDE[c.owner].line;
+      for (let k = 0; k < c.level; k++) {
+        const s = 0.42 - k * 0.1;
+        const b = new THREE.Mesh(new THREE.BoxGeometry(s, 0.08, s), new THREE.MeshLambertMaterial({ color: k % 2 ? '#e6e9df' : col }));
+        b.position.y = 0.04 + k * 0.08; b.castShadow = true; b.receiveShadow = true; g.add(b);
+      }
+      if (c.cap) {
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.62, 6), new THREE.MeshLambertMaterial({ color: INK }));
+        pole.position.set(-0.17, 0.31, -0.17); pole.castShadow = true; g.add(pole);
+        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.14), new THREE.MeshLambertMaterial({ color: col, side: THREE.DoubleSide }));
+        flag.position.set(-0.06, 0.55, -0.17); flag.castShadow = true; flag.userData.flag = true; g.add(flag);
+      }
+      const lab = textSprite(c.name.toUpperCase() + (c.cap ? ' (СТ.)' : '') + ' · ' + c.level, col, 26, 'rgba(230,233,223,0.92)');
+      lab.position.set(0, 0.95, 0.36); g.add(lab);
+    }
+    scene.add(g);
+  }
+
+  // Фишки на подставках: табличка со знаком всегда повёрнута к камере.
+  const pieces = new Map();
+  function makePiece(u) {
+    const g = new THREE.Group();
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.19, 0.05, 24), new THREE.MeshLambertMaterial({ color: INK }));
+    base.position.y = 0.025; base.castShadow = true; g.add(base);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.42, 6), new THREE.MeshLambertMaterial({ color: INK }));
+    pole.position.y = 0.24; pole.castShadow = true; g.add(pole);
+    const plate = new THREE.Group();
+    plate.position.y = 0.72;
+    const tex = new THREE.CanvasTexture(symbolCanvas(u.o, u.t, u.hp, 2)); tex.anisotropy = 8;
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(0.86, 0.86), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide, alphaTest: 0.05 }));
+    face.castShadow = true;
+    plate.add(face);
+    g.add(plate);
+    g.userData = { unit: u, plate };
+    const t = at(u.x, u.y);
+    const off = t.city ? 0.24 : 0;
+    g.position.set(wx(u.x) + off, t.top, wz(u.y) + off * 0.6);
+    face.userData.unit = u;
+    scene.add(g);
+    pieces.set(u.id, g);
+  }
+  for (const u of UNITS) if (!at(u.x, u.y).fog) makePiece(u);
+
+  // Стрелка приказа: пунктир вдоль кривой, «бежит» к цели.
+  const arrow = new THREE.Group();
+  scene.add(arrow);
+  const dashMat = new THREE.MeshBasicMaterial({ color: SIDE[0].line });
+  const dashes = [];
+  for (let k = 0; k < 14; k++) { const d = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.012, 0.035), dashMat); arrow.add(d); dashes.push(d); }
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.18, 12), dashMat);
+  arrow.add(head);
+  function arrowPoint(k) {
+    const a = new THREE.Vector3(wx(6), 0.34, wz(5)), b = new THREE.Vector3(wx(5) + 0.22, 0.34, wz(5) - 0.12);
+    const m = new THREE.Vector3((a.x + b.x) / 2, 0.34, (a.z + b.z) / 2 - 0.7);
+    const p = new THREE.Vector3();
+    p.x = (1 - k) * (1 - k) * a.x + 2 * (1 - k) * k * m.x + k * k * b.x;
+    p.z = (1 - k) * (1 - k) * a.z + 2 * (1 - k) * k * m.z + k * k * b.z;
+    p.y = 0.34;
+    return p;
+  }
+
+  // Подсветка: рамка над клеткой под курсором, метки ходов.
+  const hoverFrame = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.98, 0.02, 0.98)), new THREE.LineBasicMaterial({ color: INK }));
+  hoverFrame.visible = false; scene.add(hoverFrame);
+  const marks = new THREE.Group(); scene.add(marks);
+
+  // ---------- Камера и параллакс ----------
+  const look = new THREE.Vector3(0, 0, 0.7);
+  const par = { x: 0, y: 0, tx: 0, ty: 0, active: false };
+  let dist = 17;
+  function resize() {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    // Подбираем дистанцию, чтобы карта целиком влезала и на телефоне.
+    const fit = Math.max((W + 3.2) / (2 * Math.tan((camera.fov * Math.PI) / 360) * camera.aspect), (H + 4.5) / (2 * Math.tan((camera.fov * Math.PI) / 360)));
+    dist = fit * (camera.aspect < 0.8 ? 1.12 : 0.92);
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const ray = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  let hoverTile = null, selected = null;
+  const tip = document.getElementById('tip');
+  function pick(ev) {
+    ndc.set((ev.clientX / window.innerWidth) * 2 - 1, -(ev.clientY / window.innerHeight) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const objs = [];
+    for (const g of pieces.values()) objs.push(g.userData.plate.children[0]);
+    const hit = ray.intersectObjects(objs.concat(cellMeshes), false)[0];
+    if (!hit) return null;
+    if (hit.object.userData.unit) return at(hit.object.userData.unit.x, hit.object.userData.unit.y);
+    return hit.object.userData.tile;
+  }
+  function describe(t) {
+    if (t.fog) return `<b>${coord(t.x, t.y)}</b> · не разведано<div class="d">отправьте разведку</div>`;
+    const T = TERRAIN[t.t];
+    let s = `<b>${coord(t.x, t.y)}</b> · ${T.name}`;
+    if (t.res) s += ` · ${RES_NAME[t.res]}`;
+    if (t.city) s += t.city.owner < 0 ? ' · деревня' : ` · ${t.city.name}`;
+    let d = T.note;
+    if (t.unit) d = `${UNIT_INFO[t.unit.t].name}, сила ${t.unit.hp}` + (t.unit.o ? ' · противник' : ' · свой');
+    else if (t.owner >= 0) d += t.owner ? ' · территория противника' : ' · наша территория';
+    return s + `<div class="d">${d}</div>`;
+  }
+  canvas.addEventListener('pointermove', (ev) => {
+    par.tx = (ev.clientX / window.innerWidth) * 2 - 1;
+    par.ty = (ev.clientY / window.innerHeight) * 2 - 1;
+    par.active = true;
+    hoverTile = pick(ev);
+    if (hoverTile) {
+      tip.hidden = false; tip.innerHTML = describe(hoverTile);
+      const left = Math.min(ev.clientX, window.innerWidth - tip.offsetWidth - 30);
+      tip.style.left = left + 'px'; tip.style.top = Math.min(ev.clientY, window.innerHeight - 70) + 'px';
+      hoverFrame.visible = true;
+      hoverFrame.position.set(wx(hoverTile.x), hoverTile.top + 0.012, wz(hoverTile.y));
+    } else { tip.hidden = true; hoverFrame.visible = false; }
+  });
+  canvas.addEventListener('pointerleave', () => { par.active = false; tip.hidden = true; hoverFrame.visible = false; });
+
+  function reach(u) {
+    const out = [];
+    const M = UNIT_INFO[u.t].move;
+    for (const t of tiles) {
+      const d = Math.max(Math.abs(t.x - u.x), Math.abs(t.y - u.y));
+      if (d < 1 || d > M || !isLand(t) || t.fog || t.unit || t.t === 'mountain') continue;
+      out.push(t);
+    }
+    return out;
+  }
+  function targetsOf(u) {
+    return UNITS.filter((e) => e.o !== u.o && !at(e.x, e.y).fog && Math.max(Math.abs(e.x - u.x), Math.abs(e.y - u.y)) <= UNIT_INFO[u.t].range);
+  }
+  function showMarks() {
+    while (marks.children.length) marks.remove(marks.children[0]);
+    if (!selected) return;
+    for (const t of reach(selected)) {
+      const d = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.02, 20), new THREE.MeshBasicMaterial({ color: SIDE[0].line }));
+      d.position.set(wx(t.x), t.top + 0.012, wz(t.y)); marks.add(d);
+    }
+    for (const e of targetsOf(selected)) {
+      const t = at(e.x, e.y);
+      const r = new THREE.Mesh(new THREE.RingGeometry(0.34, 0.42, 4), new THREE.MeshBasicMaterial({ color: SIDE[1].line, side: THREE.DoubleSide }));
+      r.rotation.x = -Math.PI / 2; r.rotation.z = Math.PI / 4; r.position.set(wx(t.x), t.top + 0.014, wz(t.y)); marks.add(r);
+    }
+    const t = at(selected.x, selected.y);
+    const sel = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.47, 4), new THREE.MeshBasicMaterial({ color: SIDE[0].line, side: THREE.DoubleSide }));
+    sel.rotation.x = -Math.PI / 2; sel.rotation.z = Math.PI / 4; sel.position.set(wx(t.x), t.top + 0.014, wz(t.y)); sel.userData.pulse = true; marks.add(sel);
+  }
+  const anims = [];
+  function hop(u, to) {
+    const g = pieces.get(u.id);
+    const from = g.position.clone();
+    const off = to.city ? 0.24 : 0;
+    const end = new THREE.Vector3(wx(to.x) + off, to.top, wz(to.y) + off * 0.6);
+    at(u.x, u.y).unit = null; u.x = to.x; u.y = to.y; to.unit = u;
+    anims.push({ t0: performance.now(), dur: 420, step: (k) => { const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; g.position.lerpVectors(from, end, e); g.position.y += Math.sin(k * Math.PI) * 0.45; } });
+  }
+  canvas.addEventListener('click', (ev) => {
+    const t = pick(ev);
+    if (!t) { selected = null; showMarks(); renderCard(); return; }
+    if (selected && reach(selected).includes(t)) { hop(selected, t); selected = null; showMarks(); renderCard(at(t.x, t.y)); return; }
+    if (t.unit && t.unit.o === 0) selected = t.unit; else selected = null;
+    showMarks(); renderCard(t);
+  });
+
+  // ---------- Карточка объекта ----------
+  function miniSymbol(kind) {
+    const cv = symbolCanvas(0, kind, null, 1);
+    const out = document.createElement('canvas'); out.width = 88; out.height = 60;
+    out.getContext('2d').drawImage(cv, 8, 14, 112, 80, 0, 0, 88, 60);
+    return out.toDataURL();
+  }
+  const ACTS = [['warrior', 'Воин', 2], ['rider', 'Всадник', 3], ['archer', 'Лучник', 3], ['defender', 'Защитник', 3]];
+  const ICONS = Object.fromEntries(ACTS.map(([k]) => [k, miniSymbol(k)]));
+  function renderCard(t) {
+    const card = document.getElementById('card');
+    t = t || at(4, 3);
+    if (t.unit && !t.fog) {
+      const u = t.unit, I = UNIT_INFO[u.t];
+      card.innerHTML = `<div class="t">${u.o ? 'ПРОТИВНИК' : 'ПОДРАЗДЕЛЕНИЕ'}: ${I.name.toUpperCase()}</div>
+        <div class="s">квадрат ${coord(u.x, u.y)} · сила ${u.hp} · ход ${I.move} · дальность ${I.range}</div>
+        <div class="s">${u.o ? 'Цель. Подведите своих в радиус атаки.' : 'Синие точки — куда можно пойти. Красный ромб — цель в радиусе атаки.'}</div>`;
+      return;
+    }
+    if (t.city && t.city.owner === 0) {
+      card.innerHTML = `<div class="t">ОБЪЕКТ: ${t.city.name.toUpperCase()}</div><div class="s">столица · уровень 3 · жители 2/4 · доход +5 · квадрат ${coord(t.x, t.y)}</div>
+        <div class="acts">${ACTS.map(([k, n, c]) => `<button class="act"><img src="${ICONS[k]}" width="44" height="30" alt="">${n.toUpperCase()}<b>★${c}</b></button>`).join('')}</div>`;
+      return;
+    }
+    card.innerHTML = `<div class="t">КВАДРАТ ${coord(t.x, t.y)}</div><div class="s">${describe(t).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()}</div>`;
+  }
+  renderCard();
+  document.getElementById('next').addEventListener('click', () => { selected = null; showMarks(); });
+
+  // ---------- Кадр ----------
+  const clock = new THREE.Clock();
+  function loop(now) {
+    requestAnimationFrame(loop);
+    const t = clock.getElapsedTime();
+    for (let k = anims.length - 1; k >= 0; k--) { const a = anims[k]; const p = Math.min(1, (now - a.t0) / a.dur); a.step(p); if (p >= 1) anims.splice(k, 1); }
+    // Параллакс: камера следует за курсором, в покое медленно «дышит».
+    const tx = par.active ? par.tx : Math.sin(t * 0.25) * 0.5;
+    const ty = par.active ? par.ty : Math.cos(t * 0.2) * 0.3;
+    par.x += (tx - par.x) * 0.05; par.y += (ty - par.y) * 0.05;
+    const el = 0.86 + par.y * 0.08;
+    camera.position.set(look.x + par.x * 1.6, look.y + Math.sin(el) * dist, look.z + Math.cos(el) * dist);
+    camera.lookAt(look);
+    for (const g of pieces.values()) {
+      const p = g.userData.plate;
+      p.quaternion.copy(camera.quaternion);
+    }
+    scene.traverse((o) => { if (o.userData.flag) o.rotation.y = Math.sin(t * 3) * 0.3; });
+    for (let k = 0; k < dashes.length; k++) {
+      const kk = ((k / dashes.length) + t * 0.12) % 1 * 0.92;
+      const p = arrowPoint(kk), q = arrowPoint(Math.min(1, kk + 0.02));
+      dashes[k].position.copy(p);
+      dashes[k].rotation.y = Math.atan2(q.x - p.x, q.z - p.z) + Math.PI / 2;
+    }
+    const hp = arrowPoint(0.97), hq = arrowPoint(1);
+    head.position.copy(hq);
+    head.rotation.set(Math.PI / 2, 0, 0);
+    head.rotation.z = -Math.atan2(hq.x - hp.x, hq.z - hp.z);
+    for (const m of marks.children) if (m.userData.pulse) m.scale.setScalar(1 + Math.sin(t * 5) * 0.04);
+    renderer.render(scene, camera);
+  }
+  requestAnimationFrame(loop);
+});
+</script>
